@@ -1,0 +1,873 @@
+﻿:root {
+    --primary: #00aaff;
+    --primary-dark: #0080cc;
+    --bg: #020617;
+    --bg-soft: #020c1c;
+    --bg-card: #020a16;
+    --border-subtle: #1f2937;
+    --text-main: #e5f2ff;
+    --text-muted: #94a3b8;
+    --error: #f97373;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient( circle at top, #031727 0, #020617 45%, #00010a 100% );
+    color: var(--text-main);
+}
+
+/* ================== APP LAYOUT ================== */
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ================== TOP BAR ================== */
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background: linear-gradient( 90deg, rgba(0, 170, 255, 0.18), rgba(0, 170, 255, 0) 55% );
+    border-bottom: 1px solid var(--border-subtle);
+    backdrop-filter: blur(14px);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.top-nav {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.nav-item {
+    position: relative;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+    .nav-item:hover {
+        color: var(--text-main);
+        background: rgba(15, 23, 42, 1);
+    }
+
+    .nav-item.active {
+        background: var(--primary);
+        color: #02111b;
+        font-weight: 600;
+        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.3);
+    }
+
+/* Trung tâm: ô search */
+
+.topbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 320px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--text-main);
+    font-size: 13px;
+    outline: none;
+}
+
+    .search-input::placeholder {
+        color: #64748b;
+    }
+
+    .search-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.5);
+    }
+
+/* Bên phải: info user + logout */
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.app-user-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+    .app-user-label b {
+        color: var(--primary);
+    }
+
+.app-logout {
+    border: none;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    background: radial-gradient(circle at top left, #0f172a, #020617);
+    color: var(--text-main);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    transition: all 0.15s ease-out;
+}
+
+    .app-logout:hover {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.4);
+    }
+
+/* ================== MAIN LAYOUT ================== */
+
+.main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+/* Sidebar trái */
+
+.sidebar-left {
+    width: 64px;
+    border-right: 1px solid var(--border-subtle);
+    background: radial-gradient(circle at top, #020b18, #020617 60%);
+    padding: 10px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-title {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.sidebar-avatar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 20% 10%, #1f2937, #020617);
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    position: relative;
+}
+
+    .avatar-circle.online::after {
+        content: "";
+        position: absolute;
+        right: -2px;
+        bottom: -2px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.35);
+    }
+
+/* Khu nội dung chính */
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px 16px;
+    min-width: 0;
+}
+
+/* Player (video) */
+
+.player-wrapper {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
+    min-height: 260px;
+}
+
+.player {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background: radial-gradient(circle at top, #020b18, #020617);
+}
+
+.live-badge {
+    position: absolute;
+    left: 16px;
+    top: 14px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #ff395b, #ff974c);
+    color: #02111b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.viewer-counter {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    color: var(--text-muted);
+    font-size: 11px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+/* Strip thông tin dưới video */
+
+.stream-strip {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: linear-gradient( 90deg, rgba(0, 170, 255, 0.16), rgba(0, 170, 255, 0) 60% );
+    border: 1px solid rgba(0, 170, 255, 0.32);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.strip-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.strip-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 20% 10%, #1f2937, #020617);
+    border: 1px solid rgba(148, 163, 184, 0.8);
+}
+
+.strip-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.strip-title {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.strip-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.strip-right {
+    display: flex;
+    gap: 8px;
+}
+
+/* Nút dạng pill */
+
+.pill-btn {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    padding: 5px 12px;
+    font-size: 12px;
+    background: rgba(15, 23, 42, 0.95);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+    .pill-btn:hover {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.4);
+    }
+
+    .pill-btn.primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-color: transparent;
+        color: #02111b;
+        font-weight: 600;
+        box-shadow: 0 12px 30px rgba(0, 170, 255, 0.55);
+    }
+
+        .pill-btn.primary:hover {
+            filter: brightness(1.05);
+        }
+
+/* Thông tin channel / panel */
+
+.channel-info {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.channel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.channel-name {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.channel-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.channel-panels {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
+    gap: 12px;
+}
+
+.panel {
+    background: var(--bg-card);
+    border-radius: 14px;
+    border: 1px solid var(--border-subtle);
+    padding: 12px 14px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+}
+
+    .panel h2 {
+        margin: 0 0 6px;
+        font-size: 15px;
+    }
+
+    .panel p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+/* ================== CHAT BÊN PHẢI ================== */
+
+.chat {
+    width: 280px;
+    border-left: 1px solid var(--border-subtle);
+    background: radial-gradient(circle at top, #020b18, #020617 60%);
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chat-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.chat-username {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ================== EXPLORE – STREAM GRID ================== */
+
+.stream-grid {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.stream-card {
+    border-radius: 14px;
+    overflow: hidden;
+    background: radial-gradient(circle at top, #020b18, #020617 70%);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
+}
+
+    .stream-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary);
+        box-shadow: 0 14px 32px rgba(0, 170, 255, 0.35);
+    }
+
+.thumb-placeholder {
+    height: 96px;
+    background: radial-gradient( circle at 10% 0%, rgba(0, 170, 255, 0.6), rgba(0, 170, 255, 0.06) 40%, #020617 100% );
+    display: flex;
+    align-items: flex-end;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.stream-card-body {
+    padding: 8px 10px 9px;
+}
+
+.stream-title {
+    font-size: 13px;
+    margin-bottom: 2px;
+}
+
+.stream-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ================== LOGIN PAGE ================== */
+
+.login-shell {
+    height: 100vh;
+    display: flex;
+    background: radial-gradient( circle at top, #031727 0, #020617 45%, #00010a 100% );
+}
+
+.login-left {
+    flex: 1.15;
+    padding: 26px 34px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.login-right {
+    flex: 0.85;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 28px;
+    background: radial-gradient(circle at top, #020b18, #020617 60%);
+    border-left: 1px solid var(--border-subtle);
+}
+
+.login-left-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 26px;
+}
+
+.login-logo-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.login-logo-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 20%, #f9fafb, var(--primary));
+    box-shadow: 0 0 18px rgba(0, 170, 255, 0.9);
+}
+
+.login-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.login-hero-title {
+    margin: 10px 0 4px;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.login-hero-subtitle {
+    margin: 0 0 22px;
+    font-size: 13px;
+    max-width: 380px;
+    color: var(--text-muted);
+}
+
+.login-hero-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 22px;
+    padding: 12px 14px 10px;
+    border: 1px solid rgba(0, 170, 255, 0.28);
+    background: radial-gradient( circle at top left, rgba(0, 170, 255, 0.32), rgba(0, 170, 255, 0.03) 40%, rgba(15, 23, 42, 0.98) );
+    box-shadow: 0 24px 80px rgba(0, 170, 255, 0.35);
+}
+
+.login-hero-screen {
+    border-radius: 18px;
+    background: radial-gradient(circle at 20% 0%, #1f2937, #020617);
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-hero-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    background: radial-gradient(circle at 20% 0%, #0ea5e9, var(--primary));
+    box-shadow: 0 12px 40px rgba(0, 170, 255, 0.8);
+}
+
+.login-hero-icons {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.login-hero-pill {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.95);
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+    .login-hero-pill .icon {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 10px rgba(0, 170, 255, 0.9);
+    }
+
+    .login-hero-pill.top-left {
+        left: 16px;
+        top: 12px;
+    }
+
+    .login-hero-pill.bottom-right {
+        right: 12px;
+        bottom: 14px;
+    }
+
+    .login-hero-pill.bottom-left {
+        left: 22px;
+        bottom: 40px;
+    }
+
+.login-hero-controls {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.login-hero-timeline {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.9);
+    overflow: hidden;
+    margin-right: 8px;
+}
+
+    .login-hero-timeline span {
+        display: block;
+        width: 60%;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    }
+
+.login-dot {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(0, 170, 255, 0.18);
+    box-shadow: 0 0 40px rgba(0, 170, 255, 0.45);
+}
+
+    .login-dot.small {
+        width: 14px;
+        height: 14px;
+    }
+
+    .login-dot.blue {
+        background: rgba(56, 189, 248, 0.35);
+    }
+
+    .login-dot.dot-1 {
+        width: 24px;
+        height: 24px;
+        left: 48%;
+        top: 14%;
+    }
+
+    .login-dot.dot-2 {
+        right: 16%;
+        top: 42%;
+    }
+
+    .login-dot.dot-3 {
+        left: 12%;
+        bottom: 18%;
+    }
+
+.login-left-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Card bên phải: login / register */
+
+.login-card {
+    width: 100%;
+    max-width: 380px;
+    border-radius: 20px;
+    padding: 20px 20px 18px;
+    background: radial-gradient( circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96) );
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 18px 60px rgba(15, 23, 42, 0.9);
+}
+
+.login-brand {
+    display: flex;
+    gap: 3px;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.login-heading {
+    margin: 0 0 4px;
+    font-size: 20px;
+}
+
+.login-subheading {
+    margin: 0 0 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.login-google-btn {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    background: rgba(15, 23, 42, 0.98);
+    padding: 7px 10px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--text-main);
+    margin-bottom: 10px;
+}
+
+    .login-google-btn:hover {
+        border-color: var(--primary);
+    }
+
+.login-google-icon {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: conic-gradient( from 180deg, #34a853, #4285f4, #fbbc05, #ea4335, #34a853 );
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 10px 0 12px;
+}
+
+.login-divider-line {
+    flex: 1;
+    height: 1px;
+    background: #1e293b;
+}
+
+.login-form-field {
+    margin-bottom: 10px;
+}
+
+.login-label {
+    font-size: 11px;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+}
+
+.login-input {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid rgba(30, 64, 175, 0.9);
+    background: rgba(15, 23, 42, 0.98);
+    padding: 7px 10px;
+    font-size: 12px;
+    color: var(--text-main);
+    outline: none;
+}
+
+    .login-input::placeholder {
+        color: #64748b;
+    }
+
+    .login-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.5);
+    }
+
+.login-row-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.login-link {
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 11px;
+}
+
+    .login-link:hover {
+        text-decoration: underline;
+    }
+
+.login-submit-btn {
+    width: 100%;
+    margin-top: 4px;
+    border-radius: 999px;
+    border: none;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #020617;
+    box-shadow: 0 18px 40px rgba(0, 170, 255, 0.7);
+}
+
+    .login-submit-btn:hover {
+        filter: brightness(1.05);
+    }
+
+.login-error {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--error);
+}
+
+.login-footer {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ================== RESPONSIVE ================== */
+
+@media (max-width: 960px) {
+    .login-shell {
+        flex-direction: column;
+    }
+
+    .login-left {
+        display: none;
+    }
+
+    .login-right {
+        flex: 1;
+        border-left: none;
+        padding: 20px;
+    }
+
+    .main {
+        flex-direction: column;
+    }
+
+    .sidebar-left {
+        display: none;
+    }
+
+    .chat {
+        display: none;
+    }
+}
