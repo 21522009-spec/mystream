@@ -32,9 +32,8 @@ export default function StreamerStudio({
 
   const schema = process.env.REACT_APP_SRS_SCHEMA || "http";
 
-  // Nếu bạn có NAT/public thì có thể set REACT_APP_RTC_EIP.
-  const rtcEipRaw = process.env.REACT_APP_RTC_EIP || "";
-  const rtcEip = rtcEipRaw.replace(/:\d+$/, "");
+  // Cho phép eip là "ip" hoặc "ip:port"
+  const rtcEip = (process.env.REACT_APP_RTC_EIP || "").trim();
   const eipQuery = rtcEip ? `&eip=${encodeURIComponent(rtcEip)}` : "";
 
   const whipUrl = `${schema}://${resolvedHost}:1985/rtc/v1/whip/?app=live&stream=${encodeURIComponent(
@@ -53,8 +52,7 @@ export default function StreamerStudio({
   };
 
   function getConstraintsByQuality(q) {
-    // Lưu ý: đây là độ phân giải khi CAPTURE (người phát).
-    // Người xem KHÔNG tự chọn quality được nếu chỉ có 1 stream WebRTC.
+    // Đây là độ phân giải khi CAPTURE (người phát).
     if (q === "1080p") return { width: 1920, height: 1080, frameRate: 30 };
     if (q === "480p") return { width: 854, height: 480, frameRate: 30 };
     return { width: 1280, height: 720, frameRate: 30 }; // default 720p
