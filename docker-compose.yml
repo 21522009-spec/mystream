@@ -1,6 +1,8 @@
-﻿services:
-  db:
-    image: postgres:17
+version: "3.8"
+
+services:
+  mystream-db:
+    image: postgres:15
     container_name: mystream-db
     restart: unless-stopped
     environment:
@@ -10,19 +12,18 @@
     ports:
       - "5432:5432"
     volumes:
-      - mystream-db-data:/var/lib/postgresql/data
+      - mystream_pgdata:/var/lib/postgresql/data
 
-  srs:
-    image: ossrs/srs:latest
-    container_name: srs
+  mystream-srs:
+    image: ossrs/srs:5
+    container_name: mystream-srs
     restart: unless-stopped
     ports:
-      - "1935:1935"
-      - "1985:1985"
-      - "8000:8000/udp"
-      - "8081:8080"
+      - "1935:1935"         # RTMP (nếu bạn cần OBS)
+      - "1985:1985"         # HTTP API + WHIP/WHEP endpoint       
+      - "8000:8000/udp"     # WebRTC UDP
     volumes:
-      - ./srs/srs.conf:/usr/local/srs/conf/srs.conf
+      - ./srs/srs.conf:/usr/local/srs/conf/srs.conf:ro
 
 volumes:
-  mystream-db-data:
+  mystream_pgdata:

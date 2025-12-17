@@ -1,169 +1,215 @@
-﻿import { useState, useEffect } from 'react';
-import './App.css';
-import LivePlayer from './components/LivePlayer';
-import ChatBox from './components/ChatBox';
-import StreamerStudio from './components/StreamerStudio';
+// frontend/src/App.js
+import { useEffect, useMemo, useState } from "react";
+import "./App.css";
 
-const API_BASE = 'http://localhost:4000';
-const SRS_HOST = window.location.hostname || 'localhost';
-const DEFAULT_STREAM_KEY = 'u1';
+import LivePlayer from "./components/LivePlayer";
+import ChatBox from "./components/ChatBox";
+import StreamerStudio from "./components/StreamerStudio";
 
-function App() {
-  const [token, setToken] = useState(null);
+import { socket } from "./socket";
+
+// Ưu tiên env để sau này bạn có thể đổi host dễ dàng.
+// Local dev: backend chạy port 4000.
+const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:4000";
+
+export default function App() {
+  // ========= AUTH =========
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeView, setActiveView] = useState('studio');
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
 
-  const [loginUsername, setLoginUsername] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+  // ========= NAV / ROOM =========
+  const [tab, setTab] = useState("explore"); // explore | room | studio | profile
+  const [search, setSearch] = useState("");
+  const [roomInput, setRoomInput] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState(""); // roomCode = streamKey
 
-  const [regUsername, setRegUsername] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regConfirm, setRegConfirm] = useState('');
-  const [regError, setRegError] = useState('');
+  // room code của mình (được backend sinh tự động khi register)
+  const myRoomCode = useMemo(
+    () => currentUser?.stream_key || currentUser?.streamKey || "",
+    [currentUser]
+  );
 
-  const [liveList, setLiveList] = useState([]);
-  const [loadingLiveList, setLoadingLiveList] = useState(false);
-  const [liveListError, setLiveListError] = useState('');
+  // room đang xem (nếu chưa chọn thì mặc định xem phòng của mình)
+  const activeRoom = useMemo(
+    () => selectedRoom || myRoomCode,
+    [selectedRoom, myRoomCode]
+  );
 
-  const chatUsername = currentUser?.username || 'guest';
-  const streamKey = currentUser?.stream_key || DEFAULT_STREAM_KEY;
+  // ========= REACTIONS =========
+  const REACTION_ICONS = ["❤️", "👍", "😂", "🔥", "👏"];
+  const [reactions, setReactions] = useState([]);
 
-  // Auto lấy token khi reload trang
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    if (!savedToken) return;
+  // ========= EXPLORE LIST =========
+  const [streams, setStreams] = useState([]);
+  const filteredStreams = useMemo(() => {
+    const q = (search || "").trim().toLowerCase();
+    if (!q) return streams;
+    return streams.filter((s) => (s.roomCode || "").toLowerCase().includes(q));
+  }, [streams, search]);
 
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/me`, {
-          headers: { Authorization: `Bearer ${savedToken}` },
-        });
-        if (!res.ok) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          return;
-        }
-        const data = await res.json();
-        setToken(savedToken);
-        setCurrentUser(data.user);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
-  }, []);
+  // ========= PROFILE VIDEOS =========
+  const [myVideos, setMyVideos] = useState([]);
 
-  // Khi vào tab Explore thì load danh sách livestream
-  useEffect(() => {
-    if (activeView !== 'explore') return;
+  // ========= helpers =========
+  async function api(path, options = {}) {
+    const headers = new Headers(options.headers || {});
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
-    setLoadingLiveList(true);
-    setLiveListError('');
-    fetch(`${API_BASE}/api/live-streams`)
-      .then((res) => res.json())
-      .then((data) => {
-        setLiveList(data.items || []);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLiveListError('Không tải được danh sách stream.');
-      })
-      .finally(() => {
-        setLoadingLiveList(false);
-      });
-  }, [activeView]);
-
-  async function loginWith(username, password) {
-    const res = await fetch(`${API_BASE}/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = text;
+    }
 
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Đăng nhập thất bại');
+      const msg = (data && data.error) || `HTTP ${res.status}`;
+      throw new Error(msg);
     }
-
-    const data = await res.json();
-    setToken(data.token);
-    setCurrentUser(data.user);
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
   }
 
-  async function handleLogin(e) {
-    e.preventDefault();
-    setLoginError('');
-
+  async function fetchMe(tk) {
     try {
-      await loginWith(loginUsername, loginPassword);
-    } catch (err) {
-      console.error(err);
-      setLoginError(err.message);
+      const res = await fetch(`${API_BASE}/api/me`, {
+        headers: { Authorization: `Bearer ${tk}` },
+      });
+      const j = await res.json();
+      if (j?.user) setCurrentUser(j.user);
+    } catch {
+      // ignore
     }
   }
 
-  async function handleRegister(e) {
-    e.preventDefault();
-    setRegError('');
-
-    if (!regUsername.trim() || !regPassword.trim()) {
-      setRegError('Vui lòng nhập đầy đủ username và password.');
-      return;
-    }
-    if (regPassword.length < 6) {
-      setRegError('Mật khẩu phải từ 6 ký tự trở lên.');
-      return;
-    }
-    if (regPassword !== regConfirm) {
-      setRegError('Mật khẩu xác nhận không khớp.');
-      return;
-    }
-
+  async function loginOrRegister(isRegister) {
+    setAuthError("");
     try {
-      const res = await fetch(`${API_BASE}/api/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: regUsername,
-          password: regPassword,
-        }),
+      const endpoint = isRegister ? "/api/register" : "/api/login";
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Đăng ký thất bại');
-      }
+      const j = await res.json();
+      if (!res.ok) throw new Error(j?.error || "Auth failed");
+      if (!j?.token) throw new Error("Thiếu token từ server");
 
-      await loginWith(regUsername, regPassword);
-
-      setIsRegisterMode(false);
-      setRegUsername('');
-      setRegPassword('');
-      setRegConfirm('');
-      setRegError('');
-    } catch (err) {
-      console.error(err);
-      setRegError(err.message);
+      localStorage.setItem("token", j.token);
+      setToken(j.token);
+      setCurrentUser(j.user || null);
+      await fetchMe(j.token);
+    } catch (e) {
+      setAuthError(e.message || "Auth error");
     }
   }
 
-  function handleLogout() {
+  function logout() {
+    localStorage.removeItem("token");
     setToken(null);
     setCurrentUser(null);
-    setLoginUsername('');
-    setLoginPassword('');
-    setLoginError('');
-    setRegError('');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setActiveView('studio');
+    setSelectedRoom("");
+    setTab("explore");
   }
 
-  /* ============ MÀN HÌNH LOGIN / REGISTER ============ */
+  async function loadLiveStreams() {
+    try {
+      const j = await api("/api/live-streams");
+      setStreams(j.streams || []);
+    } catch {
+      setStreams([]);
+    }
+  }
+
+  async function loadMyVideos() {
+    try {
+      const j = await api("/api/videos/mine");
+      setMyVideos(j.videos || []);
+    } catch {
+      setMyVideos([]);
+    }
+  }
+
+  // ========= join/leave room theo activeRoom =========
+  useEffect(() => {
+    if (!activeRoom) return;
+
+    socket.emit("join_room", activeRoom);
+    return () => socket.emit("leave_room", activeRoom);
+  }, [activeRoom]);
+
+  // ========= receive reactions =========
+  useEffect(() => {
+    const onReaction = (r) => {
+      if (!r) return;
+      if (r.roomCode && activeRoom && r.roomCode !== activeRoom) return;
+
+      const id = r.id || `${Date.now()}_${Math.random()}`;
+      const rr = { ...r, id };
+      setReactions((prev) => [...prev, rr]);
+
+      setTimeout(() => {
+        setReactions((prev) => prev.filter((x) => x.id !== id));
+      }, 2500);
+    };
+
+    socket.on("reaction", onReaction);
+    return () => socket.off("reaction", onReaction);
+  }, [activeRoom]);
+
+  // ========= load user if token =========
+  useEffect(() => {
+    if (!token) return;
+    fetchMe(token);
+  }, [token]);
+
+  // ========= auto-refresh explore list =========
+  useEffect(() => {
+    if (!token) return;
+    if (tab !== "explore") return;
+
+    loadLiveStreams();
+    const t = setInterval(loadLiveStreams, 3000);
+    return () => clearInterval(t);
+  }, [token, tab]);
+
+  // ========= when open profile =========
+  useEffect(() => {
+    if (!token) return;
+    if (tab !== "profile") return;
+    loadMyVideos();
+  }, [token, tab]);
+
+  // ========= send reaction =========
+  function sendReaction(icon) {
+    if (!activeRoom) return;
+    socket.emit("reaction", { roomCode: activeRoom, icon, x: Math.random() });
+  }
+
+  // ========= upload helper (StreamerStudio sẽ gọi) =========
+  async function uploadRecordingBlob(blob) {
+    const fd = new FormData();
+    fd.append("file", blob, `record_${Date.now()}.webm`);
+
+    const res = await fetch(`${API_BASE}/api/videos/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+
+    const j = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(j?.error || "Upload failed");
+    return j;
+  }
+
+  // ========= LOGIN UI =========
   if (!token) {
     return (
       <div className="login-shell">
@@ -171,238 +217,442 @@ function App() {
           <div className="login-left-header">
             <div className="login-logo-text">
               <span className="login-logo-dot" />
-              <span>MYSTREAM</span>
+              MyStream
             </div>
-            <div className="login-badge">Live & VOD Studio</div>
+            <div className="login-badge">SRS · WebRTC · Socket.IO</div>
           </div>
 
-          <h1 className="login-hero-title">
-            Tạo buổi livestream của riêng bạn.
-          </h1>
-          <p className="login-hero-subtitle">
-            Lên lịch, phát trực tiếp và tương tác với khán giả bằng chat, icon
-            và các công cụ realtime.
-          </p>
+          <div className="login-hero-title">MyStream</div>
+          <div className="login-hero-subtitle">
+            Demo livestream đa người dùng trên localhost: xem phòng, chat, reaction,
+            lưu video sau khi stream.
+          </div>
 
           <div className="login-hero-card">
             <div className="login-hero-screen">
-              <div className="login-hero-avatar">🎸</div>
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <div className="login-hero-avatar">🎥</div>
+                <div>
+                  <div style={{ fontWeight: 700 }}>Live studio</div>
+                  <div style={{ fontSize: 12, opacity: 0.85 }}>
+                    Publish WebRTC (WHIP) & Watch (WHEP)
+                  </div>
+                </div>
+              </div>
+
+              <div className="login-hero-icons">
+                <div className="login-hero-pill top-left">
+                  <span className="icon" /> Chat realtime
+                </div>
+                <div className="login-hero-pill bottom-left">
+                  <span className="icon" /> Reaction overlay
+                </div>
+                <div className="login-hero-pill bottom-right">
+                  <span className="icon" /> Record & Save
+                </div>
+              </div>
             </div>
+
+            <div className="login-hero-controls">
+              <div className="login-hero-timeline">
+                <span />
+              </div>
+              <span>Multi-user</span>
+            </div>
+          </div>
+
+          <div className="login-dot dot-1" />
+          <div className="login-dot small blue dot-2" />
+          <div className="login-dot small dot-3" />
+
+          <div className="login-left-footer">
+            <span>Localhost mode</span>
+            <span>v0.1</span>
           </div>
         </div>
 
         <div className="login-right">
           <div className="login-card">
             <div className="login-brand">
-              <span>MY</span>
-              <span>STREAM</span>
+              <span>M</span><span>Y</span><span>S</span><span>T</span><span>R</span><span>E</span><span>A</span><span>M</span>
             </div>
 
-            {!isRegisterMode ? (
-              <>
-                <h2 className="login-heading">Log in to your account</h2>
-                <p className="login-subheading">
-                  Sử dụng tài khoản đã được tạo sẵn để truy cập dashboard
-                  livestream.
-                </p>
+            <div className="login-heading">
+              {isRegisterMode ? "Create account" : "Sign in"}
+            </div>
+            <div className="login-subheading">
+              {isRegisterMode
+                ? "Tạo tài khoản để nhận mã phòng (stream key) tự động."
+                : "Đăng nhập để vào Studio / Room / Profile."}
+            </div>
 
-                <form onSubmit={handleLogin}>
-                  <div className="login-form-field">
-                    <div className="login-label">Username</div>
-                    <input
-                      className="login-input"
-                      value={loginUsername}
-                      onChange={(e) => setLoginUsername(e.target.value)}
-                      placeholder="vd: streamer1"
-                    />
-                  </div>
+            <div className="login-divider">
+              <div className="login-divider-line" />
+              <span>account</span>
+              <div className="login-divider-line" />
+            </div>
 
-                  <div className="login-form-field">
-                    <div className="login-label">Password</div>
-                    <input
-                      type="password"
-                      className="login-input"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="••••••••"
-                    />
-                  </div>
+            <div className="login-form-field">
+              <div className="login-label">Username</div>
+              <input
+                className="login-input"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="vd: u1"
+              />
+            </div>
 
-                  <button type="submit" className="login-submit-btn">
-                    Login
-                  </button>
+            <div className="login-form-field">
+              <div className="login-label">Password</div>
+              <input
+                className="login-input"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                onKeyDown={(e) => e.key === "Enter" && loginOrRegister(isRegisterMode)}
+              />
+            </div>
 
-                  {loginError && (
-                    <div className="login-error">{loginError}</div>
-                  )}
-                </form>
+            <button
+              className="login-submit-btn"
+              onClick={() => loginOrRegister(isRegisterMode)}
+            >
+              {isRegisterMode ? "Register" : "Login"}
+            </button>
 
-                <div className="login-footer">
-                  <span>Not registered yet?</span>
-                  <span
-                    className="login-link"
-                    onClick={() => {
-                      setIsRegisterMode(true);
-                      setLoginError('');
-                    }}
-                  >
-                    Create an account
-                  </span>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="login-heading">Create your account</h2>
-                <p className="login-subheading">
-                  Đăng ký tài khoản mới để bắt đầu tham gia hoặc tạo livestream.
-                </p>
+            {authError && <div className="login-error">{authError}</div>}
 
-                <form onSubmit={handleRegister}>
-                  <div className="login-form-field">
-                    <div className="login-label">Username</div>
-                    <input
-                      className="login-input"
-                      value={regUsername}
-                      onChange={(e) => setRegUsername(e.target.value)}
-                      placeholder="Chọn một username"
-                    />
-                  </div>
+            <div className="login-footer">
+              <span>
+                {isRegisterMode ? "Already have an account?" : "New user?"}
+              </span>
+              <span
+                className="login-link"
+                onClick={() => setIsRegisterMode((v) => !v)}
+              >
+                {isRegisterMode ? "Sign in" : "Register"}
+              </span>
+            </div>
 
-                  <div className="login-form-field">
-                    <div className="login-label">Password</div>
-                    <input
-                      type="password"
-                      className="login-input"
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="••••••••"
-                    />
-                  </div>
-
-                  <div className="login-form-field">
-                    <div className="login-label">Confirm password</div>
-                    <input
-                      type="password"
-                      className="login-input"
-                      value={regConfirm}
-                      onChange={(e) => setRegConfirm(e.target.value)}
-                      placeholder="Nhập lại mật khẩu"
-                    />
-                  </div>
-
-                  <button type="submit" className="login-submit-btn">
-                    Create account
-                  </button>
-
-                  {regError && <div className="login-error">{regError}</div>}
-                </form>
-
-                <div className="login-footer">
-                  <span>Already have an account?</span>
-                  <span
-                    className="login-link"
-                    onClick={() => {
-                      setIsRegisterMode(false);
-                      setRegError('');
-                    }}
-                  >
-                    Back to login
-                  </span>
-                </div>
-              </>
-            )}
+            <div style={{ marginTop: 10, fontSize: 11, color: "#94a3b8" }}>
+              API: {API_BASE}
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  /* ============ VIEW SAU KHI ĐĂNG NHẬP ============ */
-
-  function renderStudioView() {
-    return (
-      <div className="main">
-        <section className="content">
-          <div className="player-wrapper">
-            <div className="player">
-              <StreamerStudio srsHost={SRS_HOST} streamKey={streamKey} />
-            </div>
-          </div>
-        </section>
-
-        <aside className="chat">
-          <ChatBox username={chatUsername} />
-        </aside>
-      </div>
-    );
-  }
-
-  function renderLiveView() {
-    return (
-      <div className="main">
-        <section className="content">
-          <div className="player-wrapper">
-            <div className="player">
-              <LivePlayer srsHost={SRS_HOST} streamKey={streamKey} />
-            </div>
-          </div>
-        </section>
-
-        <aside className="chat">
-          <ChatBox username={chatUsername} />
-        </aside>
-      </div>
-    );
-  }
-
-  let mainView;
-  if (activeView === 'studio') mainView = renderStudioView();
-  else mainView = renderLiveView();
+  // ========= APP UI =========
+  const showSearch = tab === "explore";
 
   return (
     <div className="app">
-      <header className="topbar">
+      <div className="topbar">
         <div className="topbar-left">
-          <div className="logo">MyStream</div>
-          <nav className="top-nav">
-            <a
-              href="#studio"
-              className={`nav-item ${
-                activeView === 'studio' ? 'active' : ''
-              }`}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveView('studio');
-              }}
+          <div className="logo">MYSTREAM</div>
+
+          <div className="top-nav">
+            <div
+              className={`nav-item ${tab === "explore" ? "active" : ""}`}
+              onClick={() => setTab("explore")}
+            >
+              Explore
+            </div>
+            <div
+              className={`nav-item ${tab === "room" ? "active" : ""}`}
+              onClick={() => setTab("room")}
+            >
+              Room
+            </div>
+            <div
+              className={`nav-item ${tab === "studio" ? "active" : ""}`}
+              onClick={() => setTab("studio")}
             >
               Studio
-            </a>
-            <a
-              href="#live"
-              className={`nav-item ${activeView === 'live' ? 'active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveView('live');
-              }}
+            </div>
+            <div
+              className={`nav-item ${tab === "profile" ? "active" : ""}`}
+              onClick={() => setTab("profile")}
             >
-              Live
-            </a>
-          </nav>
+              Profile
+            </div>
+          </div>
+        </div>
+
+        <div className="topbar-center">
+          {showSearch ? (
+            <input
+              className="search-input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tìm stream theo mã phòng…"
+            />
+          ) : (
+            <div />
+          )}
         </div>
 
         <div className="topbar-right">
-          <span className="app-user-label">
-            Đã đăng nhập: <b>{currentUser?.username}</b> ({currentUser?.role})
-          </span>
-          <button className="app-logout" onClick={handleLogout}>
-            Đăng xuất
+          <div className="app-user-label">
+            Đã đăng nhập: <b>{currentUser?.username || "?"}</b>
+          </div>
+          <button className="app-logout" onClick={logout}>
+            Logout
           </button>
         </div>
-      </header>
+      </div>
 
-      {mainView}
+      <div className="main">
+        <div className="sidebar-left">
+          <div className="sidebar-title">Live</div>
+          <div className="sidebar-avatar-list">
+            <div className="avatar-circle online" title="You" />
+            <div className="avatar-circle" />
+            <div className="avatar-circle" />
+          </div>
+        </div>
+
+        <div className="content">
+          {/* ====== EXPLORE TAB ====== */}
+          {tab === "explore" && (
+            <>
+              <div className="stream-strip">
+                <div className="strip-left">
+                  <div className="strip-avatar" />
+                  <div className="strip-text">
+                    <div className="strip-title">Explore livestreams</div>
+                    <div className="strip-subtitle">
+                      Nhập mã phòng để vào Room hoặc bấm stream đang live.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="strip-right">
+                  <input
+                    className="search-input"
+                    style={{ maxWidth: 220 }}
+                    value={roomInput}
+                    onChange={(e) => setRoomInput(e.target.value)}
+                    placeholder="Mã phòng (stream key)"
+                  />
+                  <button
+                    className="pill-btn primary"
+                    onClick={() => {
+                      const code = (roomInput || "").trim();
+                      if (!code) return;
+                      setSelectedRoom(code);
+                      setTab("room");
+                    }}
+                  >
+                    Vào phòng
+                  </button>
+                  <button className="pill-btn" onClick={loadLiveStreams}>
+                    Refresh
+                  </button>
+                </div>
+              </div>
+
+              <div className="stream-grid">
+                {filteredStreams.map((s) => (
+                  <div
+                    key={s.id}
+                    className="stream-card"
+                    onClick={() => {
+                      setSelectedRoom(s.roomCode);
+                      setTab("room");
+                    }}
+                  >
+                    <div className="thumb-placeholder">LIVE</div>
+                    <div className="stream-card-body">
+                      <div className="stream-title">{s.roomCode}</div>
+                      <div className="stream-meta">
+                        <span>Viewers: {s.clients ?? 0}</span>
+                        <span>·</span>
+                        <span>App: {s.app}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {!filteredStreams.length && (
+                  <div className="panel" style={{ gridColumn: "1 / -1" }}>
+                    <h2>Chưa thấy livestream nào</h2>
+                    <p>
+                      Nếu bạn vừa bấm “Bắt đầu” ở Studio mà Explore chưa thấy, hãy kiểm tra
+                      SRS đang chạy và streamKey không rỗng.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* ====== ROOM TAB (xem livestream) ====== */}
+          {tab === "room" && (
+            <>
+              <div className="stream-strip">
+                <div className="strip-left">
+                  <div className="strip-avatar" />
+                  <div className="strip-text">
+                    <div className="strip-title">
+                      Room: <span style={{ color: "#00aaff" }}>{activeRoom || "—"}</span>
+                    </div>
+                    <div className="strip-subtitle">
+                      Bạn có thể mở thêm 1 trình duyệt (ẩn danh) để đăng nhập tài khoản khác và xem cùng lúc.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="strip-right">
+                  <button
+                    className="pill-btn"
+                    onClick={() => {
+                      setSelectedRoom("");
+                    }}
+                    title="Quay về phòng của bạn"
+                  >
+                    Về phòng của tôi
+                  </button>
+                </div>
+              </div>
+
+              <div className="player-wrapper">
+                <div className="player" style={{ height: "100%" }}>
+                  <span className="live-badge">LIVE</span>
+                  <span className="viewer-counter">Room</span>
+
+                  <LivePlayer streamKey={activeRoom} />
+
+                  {/* Reactions overlay */}
+                  <div className="reactionsLayer">
+                    {reactions.map((r) => (
+                      <span
+                        key={r.id}
+                        className="reactionFloat"
+                        style={{ left: `${(r.x || 0.5) * 100}%` }}
+                      >
+                        {r.icon}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="reactionBar">
+                    {REACTION_ICONS.map((ic) => (
+                      <button key={ic} onClick={() => sendReaction(ic)}>
+                        {ic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ====== STUDIO TAB (phát livestream) ====== */}
+          {tab === "studio" && (
+            <>
+              <div className="stream-strip">
+                <div className="strip-left">
+                  <div className="strip-avatar" />
+                  <div className="strip-text">
+                    <div className="strip-title">Studio livestream</div>
+                    <div className="strip-subtitle">
+                      Mã phòng của bạn:{" "}
+                      <b style={{ color: "#00aaff" }}>{myRoomCode || "—"}</b>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="strip-right">
+                  <button
+                    className="pill-btn"
+                    onClick={() => {
+                      if (!myRoomCode) return;
+                      navigator.clipboard?.writeText(myRoomCode);
+                    }}
+                  >
+                    Copy mã phòng
+                  </button>
+                </div>
+              </div>
+
+              <div className="player-wrapper">
+                <StreamerStudio
+                  streamKey={myRoomCode}
+                  onRecordingReady={uploadRecordingBlob}
+                />
+              </div>
+            </>
+          )}
+
+          {/* ====== PROFILE TAB ====== */}
+          {tab === "profile" && (
+            <>
+              <div className="stream-strip">
+                <div className="strip-left">
+                  <div className="strip-avatar" />
+                  <div className="strip-text">
+                    <div className="strip-title">Profile</div>
+                    <div className="strip-subtitle">
+                      Username: <b style={{ color: "#00aaff" }}>{currentUser?.username}</b>{" "}
+                      · Room code: <b style={{ color: "#00aaff" }}>{myRoomCode}</b>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="strip-right">
+                  <button className="pill-btn" onClick={loadMyVideos}>
+                    Tải lại video
+                  </button>
+                </div>
+              </div>
+
+              <div className="panel" style={{ marginTop: 12 }}>
+                <h2>Video đã lưu</h2>
+                <p>
+                  Video được lưu sau khi bạn “Dừng livestream” (record local rồi upload lên backend).
+                </p>
+
+                <div className="stream-grid" style={{ marginTop: 10 }}>
+                  {myVideos.map((v) => (
+                    <div key={v.filename} className="stream-card">
+                      <div className="thumb-placeholder">REC</div>
+                      <div className="stream-card-body">
+                        <div className="stream-title">{v.filename}</div>
+                        <div className="stream-meta" style={{ marginTop: 8 }}>
+                          <video
+                            src={`${API_BASE}${v.url}`}
+                            controls
+                            style={{ width: "100%", borderRadius: 12, background: "#000" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {!myVideos.length && (
+                    <div className="panel" style={{ gridColumn: "1 / -1" }}>
+                      <h2>Chưa có video</h2>
+                      <p>Hãy vào Studio, bấm Bắt đầu rồi Dừng để tạo video.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="chat">
+          <div className="chat-header">
+            <div className="chat-title">Chat</div>
+            <div className="chat-username">Room: {activeRoom || "—"}</div>
+          </div>
+
+          <ChatBox roomCode={activeRoom} currentUser={currentUser} />
+        </div>
+      </div>
     </div>
   );
 }
-
-export default App;

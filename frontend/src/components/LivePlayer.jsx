@@ -1,179 +1,155 @@
-﻿import { useRef, useState, useEffect } from 'react';
-import SrsSDK from '../lib/srs.sdk';
+// frontend/src/components/LivePlayer.jsx
+import { useEffect, useRef, useState } from "react";
+import SrsSDK from "../lib/srs.sdk";
 
+// Player xem WebRTC (WHEP)
 export default function LivePlayer({ srsHost, streamKey }) {
   const videoRef = useRef(null);
-  const [client, setClient] = useState(null);
-  const [status, setStatus] = useState('idle'); // idle | connecting | playing | error
-  const [error, setError] = useState('');
+  const [player, setPlayer] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle|playing|error
+  const [error, setError] = useState("");
 
   const resolvedHost =
     (srsHost && srsHost.trim()) ||
     process.env.REACT_APP_SRS_HOST ||
     window.location.hostname ||
-    'localhost';
+    "localhost";
 
-  const schema = process.env.REACT_APP_SRS_SCHEMA || 'http';
+  const schema = process.env.REACT_APP_SRS_SCHEMA || "http";
 
-  const rtcEipRaw = process.env.REACT_APP_RTC_EIP || '';
-  const rtcEip = rtcEipRaw.replace(/:\d+$/, '');
-  const eipQuery = rtcEip ? `&eip=${encodeURIComponent(rtcEip)}` : '';
+  const rtcEipRaw = process.env.REACT_APP_RTC_EIP || "";
+  const rtcEip = rtcEipRaw.replace(/:\d+$/, "");
+  const eipQuery = rtcEip ? `&eip=${encodeURIComponent(rtcEip)}` : "";
 
   const whepUrl = `${schema}://${resolvedHost}:1985/rtc/v1/whep/?app=live&stream=${encodeURIComponent(
-    streamKey
+    streamKey || ""
   )}${eipQuery}`;
 
-  const startPlay = async () => {
-    if (status === 'connecting' || status === 'playing') return;
-
-    setStatus('connecting');
-    setError('');
-
+  const attach = async (stream) => {
+    if (!videoRef.current || !stream) return;
+    videoRef.current.srcObject = stream;
+    videoRef.current.muted = false;
     try {
-      if (client) {
-        try {
-          client.close();
-        } catch {}
-      }
-
-      const p = new SrsSDK.SrsRtcWhipWhepAsync();
-
-      p.ontrack = async () => {
-        if (!videoRef.current) return;
-        videoRef.current.srcObject = p.stream;
-        videoRef.current.muted = false;
-
-        try {
-          await videoRef.current.play();
-        } catch (e) {
-          console.warn('[LivePlayer] autoplay blocked:', e);
-        }
-
-        // Chỉ set playing khi đã có track
-        setStatus('playing');
-      };
-
-      await p.play(whepUrl, {
-        videoOnly: false,
-        audioOnly: false,
-      });
-
-      setClient(p);
-      // status sẽ chuyển playing khi ontrack
+      await videoRef.current.play();
     } catch (e) {
-      console.error('[LivePlayer] play error:', e);
-      setError(e?.message || String(e));
-      setStatus('error');
+      // autoplay blocked thì người dùng click play 1 lần
+      console.warn("[Player] play blocked:", e);
     }
   };
 
   const stopPlay = () => {
     try {
-      if (client) client.close();
+      if (player) {
+        player.close();
+        if (player.stream) player.stream.getTracks().forEach((t) => t.stop());
+      }
     } catch {}
-    setClient(null);
-
+    setPlayer(null);
+    setStatus("idle");
+    setError("");
     if (videoRef.current) videoRef.current.srcObject = null;
-    setStatus('idle');
-    setError('');
   };
 
+  const startPlay = async () => {
+    setError("");
+    setStatus("idle");
+
+    try {
+      if (!streamKey) throw new Error("Thiếu streamKey/roomCode");
+
+      // dọn player cũ
+      stopPlay();
+
+      const sdk = new SrsSDK.SrsRtcWhipWhepAsync();
+      await sdk.play(whepUrl);
+      await attach(sdk.stream);
+
+      setPlayer(sdk);
+      setStatus("playing");
+    } catch (e) {
+      console.error("[Player] play error:", e);
+      setStatus("error");
+      setError(e?.message || String(e));
+    }
+  };
+
+  // Auto play khi đổi room
   useEffect(() => {
-    return () => stopPlay();
+    if (!streamKey) {
+      stopPlay();
+      return;
+    }
+    startPlay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [streamKey, resolvedHost]);
+
+  useEffect(() => () => stopPlay(), []);
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#020617',
-        borderRadius: 12,
-        border: '1px solid #111827',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* Header + nút để luôn thấy */}
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        controls={false}
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "block",
+          backgroundColor: "black",
+        }}
+      />
+
+      {/* Controls nhỏ */}
       <div
         style={{
-          padding: '10px 12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          color: '#f9fafb',
-          fontSize: 16,
-          fontWeight: 600,
-          backgroundColor: '#020617',
-          borderBottom: '1px solid #111827',
+          position: "absolute",
+          left: 12,
+          bottom: 12,
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          zIndex: 6,
         }}
       >
-        <span
-          style={{
-            padding: '2px 8px',
-            borderRadius: 999,
-            backgroundColor: '#22c55e',
-            fontSize: 11,
-            textTransform: 'uppercase',
-          }}
-        >
-          LIVE
-        </span>
-        <span>Xem livestream</span>
-
         <button
-          onClick={status === 'playing' ? stopPlay : startPlay}
-          disabled={status === 'connecting'}
+          onClick={status === "playing" ? stopPlay : startPlay}
           style={{
-            marginLeft: 10,
-            padding: '6px 14px',
             borderRadius: 999,
-            border: 'none',
-            cursor: status === 'connecting' ? 'default' : 'pointer',
-            background:
-              status === 'playing'
-                ? 'linear-gradient(135deg,#f97316,#ef4444)'
-                : 'linear-gradient(135deg,#22c55e,#16a34a)',
-            color: '#f9fafb',
-            fontSize: 13,
-            fontWeight: 600,
+            border: "1px solid rgba(148,163,184,0.6)",
+            padding: "6px 10px",
+            fontSize: 12,
+            cursor: "pointer",
+            background: "rgba(15,23,42,0.9)",
+            color: "#e5f2ff",
           }}
         >
-          {status === 'connecting'
-            ? 'Đang kết nối...'
-            : status === 'playing'
-            ? 'Dừng xem'
-            : 'Xem'}
+          {status === "playing" ? "Dừng xem" : "Xem"}
         </button>
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, opacity: 0.8 }}>
-          {status.toUpperCase()} · Host: {resolvedHost} · Key: {streamKey}
+        <span style={{ fontSize: 12, opacity: 0.8, color: "#e5f2ff" }}>
+          {status === "playing" ? "● Live" : ""}
         </span>
-      </div>
-
-      {/* Video */}
-      <div style={{ flex: 1, backgroundColor: 'black' }}>
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'block',
-            backgroundColor: 'black',
-          }}
-        />
       </div>
 
       {error && (
-        <div style={{ padding: '10px 12px', color: '#fb923c', fontSize: 12 }}>
+        <div
+          style={{
+            position: "absolute",
+            left: 12,
+            right: 12,
+            bottom: 46,
+            padding: "8px 10px",
+            borderRadius: 12,
+            background: "rgba(2,6,23,0.85)",
+            border: "1px solid rgba(251,146,60,0.5)",
+            color: "#fb923c",
+            fontSize: 12,
+            zIndex: 6,
+          }}
+        >
           Lỗi: {error}
-          <div style={{ opacity: 0.85, marginTop: 4 }}>
-            WHEP: {whepUrl}
-          </div>
+          <div style={{ opacity: 0.85, marginTop: 4 }}>WHEP: {whepUrl}</div>
         </div>
       )}
     </div>
