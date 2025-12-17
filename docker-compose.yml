@@ -18,10 +18,13 @@ services:
     image: ossrs/srs:5
     container_name: mystream-srs
     restart: unless-stopped
+    environment:
+      # Ép candidate về loopback để tránh DTLS_HANG khi chạy Docker (cùng máy)
+      SRS_RTC_SERVER_CANDIDATE: "127.0.0.1"
     ports:
-      - "1935:1935"         # RTMP (nếu bạn cần OBS)
-      - "1985:1985"         # HTTP API + WHIP/WHEP endpoint       
-      - "8000:8000/udp"     # WebRTC UDP
+      - "1935:1935"
+      - "1985:1985"
+      - "8000:8000/udp"
     volumes:
       - ./srs/srs.conf:/usr/local/srs/conf/srs.conf:ro
 

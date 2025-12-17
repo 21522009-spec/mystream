@@ -10,7 +10,11 @@ import { socket } from "./socket";
 
 // Ưu tiên env để sau này bạn có thể đổi host dễ dàng.
 // Local dev: backend chạy port 4000.
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:4000";
+// API base: ưu tiên .env, nếu không có thì tự lấy hostname hiện tại
+const API_BASE =
+  process.env.REACT_APP_API_BASE ||
+  `${window.location.protocol}//${window.location.hostname}:4000`;
+
 
 export default function App() {
   // ========= AUTH =========
