@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --primary: #00aaff;
     --primary-dark: #0080cc;
     --bg: #020617;
@@ -265,6 +265,154 @@ body,
     font-size: 11px;
     border: 1px solid rgba(148, 163, 184, 0.6);
 }
+
+/* ================== STEP 9: REACTIONS OVERLAY (Room tab) ================== */
+
+/* Layer phủ lên video để hiện icon bay */
+.reactionsLayer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 5;
+}
+
+/* Icon bay */
+.reactionFloat {
+    position: absolute;
+    bottom: 78px; /* chừa chỗ cho reactionBar */
+    transform: translateX(-50%);
+    font-size: 28px;
+    opacity: 0;
+    animation: reactionFloatUp 2.5s ease-out forwards;
+    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.55));
+}
+
+@keyframes reactionFloatUp {
+    0% {
+        transform: translate(-50%, 0) scale(0.95);
+        opacity: 0;
+    }
+
+    12% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -220px) scale(1.15);
+        opacity: 0;
+    }
+}
+
+/* Thanh nút reaction nổi trên video */
+.reactionBar {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    backdrop-filter: blur(10px);
+    z-index: 6;
+    pointer-events: auto;
+}
+
+    .reactionBar button {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(2, 6, 23, 0.85);
+        color: var(--text-main);
+        cursor: pointer;
+        font-size: 18px;
+        transition: transform 0.12s ease-out, border-color 0.12s ease-out, box-shadow 0.12s ease-out;
+    }
+
+        .reactionBar button:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.35);
+        }
+
+        .reactionBar button:active {
+            transform: translateY(0);
+        }
+
+/* ================== CHATBOX (để đẹp hơn trong panel Chat) ================== */
+.chatbox {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatbox-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chatbox-item {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(2, 10, 22, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+    .chatbox-item .meta {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .chatbox-item .text {
+        font-size: 13px;
+        color: var(--text-main);
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+.chatbox-actions {
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    gap: 8px;
+}
+
+    .chatbox-actions input {
+        flex: 1;
+        background: rgba(2, 6, 23, 0.65);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        color: var(--text-main);
+        border-radius: 12px;
+        padding: 10px 12px;
+        outline: none;
+    }
+
+        .chatbox-actions input:focus {
+            border-color: rgba(0, 170, 255, 0.6);
+            box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.18);
+        }
+
+    .chatbox-actions button {
+        border-radius: 12px;
+        padding: 10px 12px;
+        border: 1px solid rgba(0, 170, 255, 0.35);
+        background: rgba(0, 170, 255, 0.16);
+        color: var(--text-main);
+        cursor: pointer;
+    }
+
 
 /* Strip thông tin dưới video */
 

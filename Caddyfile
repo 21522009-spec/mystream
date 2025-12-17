@@ -1,0 +1,11 @@
+api-mystream21522009.duckdns.org {
+  reverse_proxy mystream-backend:4000
+}
+
+rtc-mystream21522009.duckdns.org {
+  reverse_proxy srs:1985
+}
+
+app-mystream21522009.duckdns.org {
+  reverse_proxy mystream-frontend:3000
+}
