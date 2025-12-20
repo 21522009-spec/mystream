@@ -59,9 +59,7 @@ function getJson(url) {
 
         if (res.statusCode && res.statusCode >= 400) {
           return reject(
-            new Error(
-              `HTTP ${res.statusCode} from ${url}. Body: ${body.slice(0, 300)}`
-            )
+            new Error(`HTTP ${res.statusCode} from ${url}. Body: ${body.slice(0, 300)}`)
           );
         }
 
@@ -71,9 +69,7 @@ function getJson(url) {
           resolve(JSON.parse(body));
         } catch (e) {
           reject(
-            new Error(
-              `Invalid JSON from ${url}. First 300 chars: ${body.slice(0, 300)}`
-            )
+            new Error(`Invalid JSON from ${url}. First 300 chars: ${body.slice(0, 300)}`)
           );
         }
       });
@@ -215,7 +211,7 @@ app.get("/api/live-streams", async (req, res) => {
     res.json({ streams });
   } catch (e) {
     console.error("[/api/live-streams]", e);
-    res.status(500).json({ error: "Cannot fetch live streams from SRS" });
+    res.json({ streams: [] });
   }
 });
 
