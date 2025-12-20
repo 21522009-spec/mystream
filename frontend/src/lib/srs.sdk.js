@@ -1,10 +1,4 @@
-﻿//
-// Copyright (c) 2013-2025 Winlin
-//
-// SPDX-License-Identifier: MIT
-//
-
-'use strict';
+﻿'use strict';
 
 function SrsError(name, message) {
     this.name = name;
@@ -80,7 +74,7 @@ function SrsRtcWhipWhepAsync() {
             // @see https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addStream#Migrating_to_addTrack
             self.displayStream.getTracks().forEach(function (track) {
                 self.pc.addTrack(track);
-				// Notify about local track when stream is ok.
+                // Notify about local track when stream is ok.
                 self.ontrack && self.ontrack({track: track});
             });
         }
@@ -179,6 +173,13 @@ function SrsRtcWhipWhepAsync() {
 
                 return data.code ? reject(xhr) : resolve(data);
             }
+            xhr.onerror = function() {
+                reject(new Error("Failed to connect to WebRTC server"));
+            };
+            xhr.timeout = 5000;
+            xhr.ontimeout = function() {
+                reject(new Error("WebRTC connection timeout"));
+            };
             xhr.open('POST', url, true);
             xhr.setRequestHeader('Content-type', 'application/sdp');
             xhr.send(offer.sdp);
