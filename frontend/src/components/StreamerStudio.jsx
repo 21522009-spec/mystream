@@ -19,7 +19,10 @@ export default function StreamerStudio({
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+
+  // thêm 144p
   const [quality, setQuality] = useState("720p");
+  const [actualCapture, setActualCapture] = useState("");
 
   // callback upload blob
   const onBlobReady = onRecordingReady || onUploadRecording;
@@ -42,8 +45,24 @@ export default function StreamerStudio({
 
   const attachPreview = async (stream) => {
     if (!videoRef.current || !stream) return;
+
     videoRef.current.srcObject = stream;
     videoRef.current.muted = true;
+
+    // hiển thị “actual capture” để bạn chụp hình đưa vào báo cáo
+    try {
+      const vt = stream.getVideoTracks?.()?.[0];
+      const s = vt?.getSettings?.();
+      if (s?.width && s?.height) {
+        const fps = s.frameRate ? `@${Math.round(s.frameRate)}fps` : "";
+        setActualCapture(`${s.width}x${s.height}${fps}`);
+      } else {
+        setActualCapture("");
+      }
+    } catch {
+      setActualCapture("");
+    }
+
     try {
       await videoRef.current.play();
     } catch (e) {
@@ -52,10 +71,34 @@ export default function StreamerStudio({
   };
 
   function getConstraintsByQuality(q) {
-    // Đây là độ phân giải khi CAPTURE (người phát).
-    if (q === "1080p") return { width: 1920, height: 1080, frameRate: 30 };
-    if (q === "480p") return { width: 854, height: 480, frameRate: 30 };
-    return { width: 1280, height: 720, frameRate: 30 }; // default 720p
+    // Dùng ideal để tránh camera “không hỗ trợ đúng chuẩn” bị fail getUserMedia.
+    if (q === "144p") {
+      return {
+        width: { ideal: 256, max: 426 },
+        height: { ideal: 144, max: 240 },
+        frameRate: { ideal: 15, max: 20 },
+      };
+    }
+    if (q === "1080p") {
+      return {
+        width: { ideal: 1920, max: 1920 },
+        height: { ideal: 1080, max: 1080 },
+        frameRate: { ideal: 30, max: 30 },
+      };
+    }
+    if (q === "480p") {
+      return {
+        width: { ideal: 854, max: 854 },
+        height: { ideal: 480, max: 480 },
+        frameRate: { ideal: 30, max: 30 },
+      };
+    }
+    // default 720p
+    return {
+      width: { ideal: 1280, max: 1280 },
+      height: { ideal: 720, max: 720 },
+      frameRate: { ideal: 30, max: 30 },
+    };
   }
 
   function startRecording(stream) {
@@ -89,10 +132,7 @@ export default function StreamerStudio({
         });
         chunksRef.current = [];
 
-        // Upload về backend
-        if (onBlobReady) {
-          await onBlobReady(blob);
-        }
+        if (onBlobReady) await onBlobReady(blob);
       } catch (e) {
         console.error("[Studio] upload/record error:", e);
       } finally {
@@ -119,11 +159,8 @@ export default function StreamerStudio({
     setError("");
 
     try {
-      if (!streamKey) {
-        throw new Error("Thiếu streamKey/roomCode");
-      }
+      if (!streamKey) throw new Error("Thiếu streamKey/roomCode");
 
-      // dọn publisher cũ
       if (publisher) {
         try {
           publisher.close();
@@ -132,7 +169,6 @@ export default function StreamerStudio({
 
       const sdk = new SrsSDK.SrsRtcWhipWhepAsync();
 
-      // Gợi ý cho SDK dùng constraints theo quality
       sdk.constraints = {
         audio: true,
         video: getConstraintsByQuality(quality),
@@ -145,8 +181,6 @@ export default function StreamerStudio({
       });
 
       await attachPreview(sdk.stream);
-
-      // record local stream => stop sẽ upload
       startRecording(sdk.stream);
 
       setPublisher(sdk);
@@ -162,21 +196,19 @@ export default function StreamerStudio({
   };
 
   const stopLive = () => {
-    // Stop record trước (để lấy blob)
     stopRecording();
 
     try {
       if (publisher) {
         publisher.close();
-        if (publisher.stream) {
-          publisher.stream.getTracks().forEach((t) => t.stop());
-        }
+        if (publisher.stream) publisher.stream.getTracks().forEach((t) => t.stop());
       }
     } catch {}
 
     setPublisher(null);
     setIsLive(false);
     setError("");
+    setActualCapture("");
 
     if (videoRef.current) videoRef.current.srcObject = null;
   };
@@ -191,12 +223,13 @@ export default function StreamerStudio({
       style={{
         width: "100%",
         height: "100%",
-        backgroundColor: "#020617",
+        backgroundColor: "var(--bg-card)",
         borderRadius: 16,
-        border: "1px solid #1f2937",
+        border: "1px solid var(--border-subtle)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
+        boxShadow: "0 10px 30px rgba(2,6,23,0.06)",
       }}
     >
       <div
@@ -205,11 +238,11 @@ export default function StreamerStudio({
           display: "flex",
           alignItems: "center",
           gap: 10,
-          color: "#f9fafb",
+          color: "var(--text-main)",
           fontSize: 16,
-          fontWeight: 600,
-          backgroundColor: "#020617",
-          borderBottom: "1px solid #1f2937",
+          fontWeight: 700,
+          backgroundColor: "var(--bg-card)",
+          borderBottom: "1px solid var(--border-subtle)",
         }}
       >
         <span
@@ -217,6 +250,7 @@ export default function StreamerStudio({
             padding: "2px 8px",
             borderRadius: 999,
             backgroundColor: "#ef4444",
+            color: "white",
             fontSize: 11,
             textTransform: "uppercase",
           }}
@@ -233,14 +267,14 @@ export default function StreamerStudio({
             marginLeft: 10,
             padding: "6px 14px",
             borderRadius: 999,
-            border: "none",
+            border: "1px solid rgba(2,6,23,0.08)",
             cursor: isBusy ? "default" : "pointer",
             background: isLive
               ? "linear-gradient(135deg,#ff395b,#ff974c)"
               : "linear-gradient(135deg,#00aaff,#0080cc)",
-            color: "#f9fafb",
+            color: isLive ? "#ffffff" : "#04121d",
             fontSize: 13,
-            fontWeight: 600,
+            fontWeight: 700,
           }}
         >
           {isBusy ? "Đang kết nối..." : isLive ? "Dừng livestream" : "Bắt đầu"}
@@ -254,25 +288,27 @@ export default function StreamerStudio({
             marginLeft: 8,
             padding: "6px 10px",
             borderRadius: 999,
-            border: "1px solid rgba(148,163,184,0.6)",
-            background: "rgba(15,23,42,0.9)",
-            color: "#e5f2ff",
+            border: "1px solid rgba(2,6,23,0.14)",
+            background: "#ffffff",
+            color: "var(--text-main)",
             fontSize: 12,
             outline: "none",
             cursor: isLive ? "not-allowed" : "pointer",
           }}
           title="Độ phân giải CAPTURE của người phát"
         >
+          <option value="144p">144p</option>
           <option value="480p">480p</option>
           <option value="720p">720p</option>
           <option value="1080p">1080p</option>
         </select>
 
-        <span style={{ fontSize: 12, opacity: 0.85 }}>
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
           {isRecording ? "● Recording" : ""}
         </span>
 
-        <span style={{ marginLeft: "auto", fontSize: 12, opacity: 0.8 }}>
+        <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)" }}>
+          {actualCapture ? `Capture: ${actualCapture} · ` : ""}
           Host: {resolvedHost} · Key: {streamKey || "—"}
         </span>
       </div>
@@ -292,9 +328,11 @@ export default function StreamerStudio({
       </div>
 
       {error && (
-        <div style={{ padding: "10px 12px", color: "#fb923c", fontSize: 12 }}>
+        <div style={{ padding: "10px 12px", color: "#b45309", fontSize: 12 }}>
           Lỗi: {error}
-          <div style={{ opacity: 0.85, marginTop: 4 }}>WHIP: {whipUrl}</div>
+          <div style={{ opacity: 0.85, marginTop: 4, color: "var(--text-muted)" }}>
+            WHIP: {whipUrl}
+          </div>
         </div>
       )}
     </div>

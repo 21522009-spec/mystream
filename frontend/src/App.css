@@ -1,132 +1,145 @@
+/* frontend/src/App.css */
+
+/* ============ LIGHT THEME TOKENS ============ */
 :root {
-    --primary: #00aaff;
-    --primary-dark: #0080cc;
-    --bg: #020617;
-    --bg-soft: #020c1c;
-    --bg-card: #020a16;
-    --border-subtle: #1f2937;
-    --text-main: #e5f2ff;
-    --text-muted: #94a3b8;
-    --error: #f97373;
+    /* Palette */
+    --c-white: #ffffff;
+    --c-yellow: #fff867;
+    --c-red: #fb2f38;
+    --c-blue: #2c52b3;
+    --c-gray: #5a5b6d;
+    /* Map vào theme hiện tại */
+    --primary: var(--c-blue);
+    --primary-dark: rgba(44, 82, 179, 0.88);
+    --bg: var(--c-white);
+    --bg-soft: rgba(90, 91, 109, 0.05);
+    --bg-card: rgba(255, 255, 255, 0.90);
+    --border-subtle: rgba(90, 91, 109, 0.22);
+    --text-main: #111827; /* text chính cần đậm để dễ đọc */
+    --text-muted: var(--c-gray);
+    --error: var(--c-red);
+    /* nếu bạn đang dùng theme mecha/gundam */
+    --mecha-blue: var(--c-blue);
+    --mecha-red: var(--c-red);
+    --mecha-yellow: var(--c-yellow);
 }
 
-*,
-*::before,
-*::after {
+* {
     box-sizing: border-box;
 }
 
-html,
-body,
+html, body,
 #root {
     margin: 0;
     padding: 0;
     height: 100%;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: radial-gradient( circle at top, #031727 0, #020617 45%, #00010a 100% );
+    /* nền trắng + overlay mecha svg */
+    background-image: url("./assets/mecha-bg.svg"), radial-gradient(circle at top, #ffffff 0, #f1f5f9 55%, #eaf3ff 100%);
+    background-size: 900px 900px, cover;
+    background-attachment: fixed, fixed;
+    background-repeat: repeat, no-repeat;
     color: var(--text-main);
 }
 
-/* ================== APP LAYOUT ================== */
 
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    color: var(--text-main);
+    background: radial-gradient(circle at top, #ffffff 0, #f1f5f9 55%, #eaf3ff 100%);
+}
+
+/* ============ APP LAYOUT ============ */
 .app {
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-/* ================== TOP BAR ================== */
-
 .topbar {
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 18px;
-    background: linear-gradient( 90deg, rgba(0, 170, 255, 0.18), rgba(0, 170, 255, 0) 55% );
+    padding: 0 14px;
+    background: rgba(255,255,255,0.9);
     border-bottom: 1px solid var(--border-subtle);
-    backdrop-filter: blur(14px);
+    backdrop-filter: blur(10px);
 }
 
 .topbar-left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 .logo {
-    font-weight: 800;
-    font-size: 20px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--primary);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    font-size: 12px;
 }
 
 .top-nav {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     padding: 4px;
+    border: 1px solid var(--border-subtle);
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.9);
+    background: #ffffff;
 }
 
 .nav-item {
-    position: relative;
-    padding: 6px 14px;
+    font-size: 12px;
+    padding: 7px 10px;
     border-radius: 999px;
-    font-size: 13px;
-    color: var(--text-muted);
-    text-decoration: none;
     cursor: pointer;
-    transition: all 0.15s ease-out;
+    color: var(--text-muted);
+    user-select: none;
 }
 
     .nav-item:hover {
+        background: #f1f5f9;
         color: var(--text-main);
-        background: rgba(15, 23, 42, 1);
     }
 
     .nav-item.active {
-        background: var(--primary);
-        color: #02111b;
-        font-weight: 600;
-        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.3);
+        background: linear-gradient(135deg, rgba(0,170,255,0.18), rgba(0,170,255,0.06));
+        border: 1px solid rgba(0,170,255,0.35);
+        color: var(--text-main);
     }
-
-/* Trung tâm: ô search */
 
 .topbar-center {
     flex: 1;
     display: flex;
     justify-content: center;
+    padding: 0 12px;
 }
 
 .search-input {
-    width: 100%;
-    max-width: 320px;
-    padding: 7px 12px;
+    width: min(420px, 100%);
     border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.5);
-    background: rgba(15, 23, 42, 0.9);
-    color: var(--text-main);
-    font-size: 13px;
+    border: 1px solid rgba(2,6,23,0.14);
+    padding: 8px 12px;
+    font-size: 12px;
     outline: none;
+    background: #ffffff;
+    color: var(--text-main);
 }
 
     .search-input::placeholder {
-        color: #64748b;
+        color: #94a3b8;
     }
 
     .search-input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.5);
+        border-color: rgba(0,170,255,0.6);
+        box-shadow: 0 0 0 3px rgba(0,170,255,0.18);
     }
-
-/* Bên phải: info user + logout */
 
 .topbar-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .app-user-label {
@@ -134,54 +147,48 @@ body,
     color: var(--text-muted);
 }
 
-    .app-user-label b {
-        color: var(--primary);
-    }
-
 .app-logout {
-    border: none;
     border-radius: 999px;
-    padding: 6px 14px;
+    border: 1px solid rgba(2,6,23,0.14);
+    background: #ffffff;
+    padding: 7px 12px;
     font-size: 12px;
     cursor: pointer;
-    background: radial-gradient(circle at top left, #0f172a, #020617);
-    color: var(--text-main);
-    border: 1px solid rgba(148, 163, 184, 0.6);
-    transition: all 0.15s ease-out;
 }
 
     .app-logout:hover {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.4);
+        border-color: rgba(0,170,255,0.45);
     }
 
-/* ================== MAIN LAYOUT ================== */
-
+/* ============ MAIN ============ */
 .main {
     flex: 1;
-    display: flex;
     min-height: 0;
+    display: flex;
+    background-image: url("./assets/mecha-bg.svg");
+    background-repeat: no-repeat;
+    background-size: cover; /* phủ kín */
+    background-position: center top; /* canh từ trên xuống */
+    background-attachment: fixed;
 }
 
-/* Sidebar trái */
-
 .sidebar-left {
-    width: 64px;
+    width: 84px;
     border-right: 1px solid var(--border-subtle);
-    background: radial-gradient(circle at top, #020b18, #020617 60%);
-    padding: 10px 6px;
+    background: rgba(255,255,255,0.85);
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 12px 10px;
     gap: 12px;
 }
 
 .sidebar-title {
     font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    font-weight: 700;
     color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
 }
 
 .sidebar-avatar-list {
@@ -191,264 +198,56 @@ body,
 }
 
 .avatar-circle {
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: radial-gradient(circle at 20% 10%, #1f2937, #020617);
-    border: 1px solid rgba(148, 163, 184, 0.6);
-    position: relative;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #f1f5f9;
+    border: 1px solid rgba(2,6,23,0.10);
 }
 
-    .avatar-circle.online::after {
-        content: "";
-        position: absolute;
-        right: -2px;
-        bottom: -2px;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: var(--primary);
-        box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.35);
+    .avatar-circle.online {
+        outline: 2px solid rgba(0,170,255,0.45);
+        box-shadow: 0 10px 30px rgba(0,170,255,0.18);
     }
-
-/* Khu nội dung chính */
 
 .content {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 14px 16px 16px;
     min-width: 0;
-}
-
-/* Player (video) */
-
-.player-wrapper {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #000;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.7);
-    min-height: 260px;
-}
-
-.player {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid var(--border-subtle);
-    background: radial-gradient(circle at top, #020b18, #020617);
-}
-
-.live-badge {
-    position: absolute;
-    left: 16px;
-    top: 14px;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #ff395b, #ff974c);
-    color: #02111b;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-.viewer-counter {
-    position: absolute;
-    right: 16px;
-    top: 14px;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.9);
-    color: var(--text-muted);
-    font-size: 11px;
-    border: 1px solid rgba(148, 163, 184, 0.6);
-}
-
-/* ================== STEP 9: REACTIONS OVERLAY (Room tab) ================== */
-
-/* Layer phủ lên video để hiện icon bay */
-.reactionsLayer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 5;
-}
-
-/* Icon bay */
-.reactionFloat {
-    position: absolute;
-    bottom: 78px; /* chừa chỗ cho reactionBar */
-    transform: translateX(-50%);
-    font-size: 28px;
-    opacity: 0;
-    animation: reactionFloatUp 2.5s ease-out forwards;
-    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.55));
-}
-
-@keyframes reactionFloatUp {
-    0% {
-        transform: translate(-50%, 0) scale(0.95);
-        opacity: 0;
-    }
-
-    12% {
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-50%, -220px) scale(1.15);
-        opacity: 0;
-    }
-}
-
-/* Thanh nút reaction nổi trên video */
-.reactionBar {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.55);
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    backdrop-filter: blur(10px);
-    z-index: 6;
-    pointer-events: auto;
-}
-
-    .reactionBar button {
-        width: 40px;
-        height: 40px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        background: rgba(2, 6, 23, 0.85);
-        color: var(--text-main);
-        cursor: pointer;
-        font-size: 18px;
-        transition: transform 0.12s ease-out, border-color 0.12s ease-out, box-shadow 0.12s ease-out;
-    }
-
-        .reactionBar button:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.35);
-        }
-
-        .reactionBar button:active {
-            transform: translateY(0);
-        }
-
-/* ================== CHATBOX (để đẹp hơn trong panel Chat) ================== */
-.chatbox {
-    flex: 1;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.chatbox-list {
-    flex: 1;
-    min-height: 0;
+    padding: 12px;
     overflow: auto;
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
 }
 
-.chatbox-item {
-    padding: 8px 10px;
-    border-radius: 12px;
-    background: rgba(2, 10, 22, 0.6);
-    border: 1px solid rgba(148, 163, 184, 0.18);
-}
-
-    .chatbox-item .meta {
-        font-size: 11px;
-        color: var(--text-muted);
-        margin-bottom: 4px;
-    }
-
-    .chatbox-item .text {
-        font-size: 13px;
-        color: var(--text-main);
-        line-height: 1.35;
-        word-break: break-word;
-    }
-
-.chatbox-actions {
-    padding: 10px 12px 12px;
-    border-top: 1px solid var(--border-subtle);
-    display: flex;
-    gap: 8px;
-}
-
-    .chatbox-actions input {
-        flex: 1;
-        background: rgba(2, 6, 23, 0.65);
-        border: 1px solid rgba(148, 163, 184, 0.28);
-        color: var(--text-main);
-        border-radius: 12px;
-        padding: 10px 12px;
-        outline: none;
-    }
-
-        .chatbox-actions input:focus {
-            border-color: rgba(0, 170, 255, 0.6);
-            box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.18);
-        }
-
-    .chatbox-actions button {
-        border-radius: 12px;
-        padding: 10px 12px;
-        border: 1px solid rgba(0, 170, 255, 0.35);
-        background: rgba(0, 170, 255, 0.16);
-        color: var(--text-main);
-        cursor: pointer;
-    }
-
-
-/* Strip thông tin dưới video */
-
+/* ============ STRIP ============ */
 .stream-strip {
-    margin-top: 10px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: linear-gradient( 90deg, rgba(0, 170, 255, 0.16), rgba(0, 170, 255, 0) 60% );
-    border: 1px solid rgba(0, 170, 255, 0.32);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.06);
 }
 
 .strip-left {
     display: flex;
-    align-items: center;
     gap: 10px;
+    align-items: center;
 }
 
 .strip-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
-    background: radial-gradient(circle at 20% 10%, #1f2937, #020617);
-    border: 1px solid rgba(148, 163, 184, 0.8);
-}
-
-.strip-text {
-    display: flex;
-    flex-direction: column;
+    width: 42px;
+    height: 42px;
+    border-radius: 16px;
+    background: radial-gradient(circle at 20% 0%, rgba(0,170,255,0.55), rgba(0,170,255,0.10));
+    border: 1px solid rgba(0,170,255,0.35);
 }
 
 .strip-title {
+    font-weight: 800;
     font-size: 14px;
-    font-weight: 600;
 }
 
 .strip-subtitle {
@@ -458,99 +257,193 @@ body,
 
 .strip-right {
     display: flex;
+    align-items: center;
     gap: 8px;
 }
 
-/* Nút dạng pill */
-
 .pill-btn {
     border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.6);
-    padding: 5px 12px;
+    border: 1px solid rgba(2,6,23,0.14);
+    background: #ffffff;
+    padding: 8px 12px;
     font-size: 12px;
-    background: rgba(15, 23, 42, 0.95);
-    color: var(--text-main);
     cursor: pointer;
-    transition: all 0.15s ease-out;
 }
 
     .pill-btn:hover {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.4);
+        border-color: rgba(0,170,255,0.45);
     }
 
     .pill-btn.primary {
         background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        border-color: transparent;
-        color: #02111b;
-        font-weight: 600;
-        box-shadow: 0 12px 30px rgba(0, 170, 255, 0.55);
+        border: none;
+        color: #04121d;
+        font-weight: 800;
     }
 
-        .pill-btn.primary:hover {
-            filter: brightness(1.05);
-        }
-
-/* Thông tin channel / panel */
-
+/* ============ ROOM VIEW ============ */
 .channel-info {
-    margin-top: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    margin-top: 12px;
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+    overflow: hidden;
 }
 
 .channel-header {
+    padding: 10px 12px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    gap: 10px;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .channel-name {
-    margin: 0 0 4px;
-    font-size: 18px;
-    font-weight: 700;
+    font-weight: 900;
 }
 
 .channel-meta {
     font-size: 12px;
     color: var(--text-muted);
+    margin-top: 2px;
 }
 
 .channel-panels {
+    padding: 12px;
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
+    grid-template-columns: 1.4fr 1fr;
     gap: 12px;
 }
 
 .panel {
-    background: var(--bg-card);
-    border-radius: 14px;
+    border-radius: 16px;
     border: 1px solid var(--border-subtle);
-    padding: 12px 14px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+    background: var(--bg-card);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+    padding: 12px;
 }
 
     .panel h2 {
         margin: 0 0 6px;
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .panel p {
         margin: 0;
-        font-size: 13px;
+        font-size: 12px;
         color: var(--text-muted);
     }
 
-/* ================== CHAT BÊN PHẢI ================== */
+/* video container wrapper (giữ video nền đen) */
+.player-wrapper {
+    height: 420px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    background: black;
+    position: relative;
+}
 
+.player {
+    width: 100%;
+    height: 100%;
+    background: black;
+}
+
+.live-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    background: #ef4444;
+    color: white;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.viewer-counter {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(2,6,23,0.14);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--text-main);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+}
+
+/* reaction floating layer */
+.reactionsLayer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.reactionFloat {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 34px;
+    opacity: 0;
+    animation: floatUp 1.6s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translate(-50%,0);
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%,-220px);
+        opacity: 0;
+    }
+}
+
+.reactionBar {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(255,255,255,0.85);
+}
+
+    .reactionBar button {
+        border-radius: 999px;
+        border: 1px solid rgba(2,6,23,0.14);
+        background: #ffffff;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .reactionBar button:hover {
+            border-color: rgba(0,170,255,0.45);
+        }
+
+/* ============ CHAT (RIGHT) ============ */
 .chat {
     width: 280px;
     border-left: 1px solid var(--border-subtle);
-    background: radial-gradient(circle at top, #020b18, #020617 60%);
+    background: rgba(255,255,255,0.85);
     display: flex;
     flex-direction: column;
+    min-height: 0;
 }
 
 .chat-header {
@@ -563,7 +456,7 @@ body,
 
 .chat-title {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 800;
 }
 
 .chat-username {
@@ -571,8 +464,72 @@ body,
     color: var(--text-muted);
 }
 
-/* ================== EXPLORE – STREAM GRID ================== */
+.chatbox {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
 
+.chatbox-list {
+    flex: 1;
+    overflow: auto;
+    padding: 10px 10px 0;
+}
+
+.chatbox-item {
+    border: 1px solid rgba(2,6,23,0.10);
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 10px 24px rgba(2,6,23,0.04);
+}
+
+    .chatbox-item .meta {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+
+    .chatbox-item .text {
+        font-size: 12px;
+        color: var(--text-main);
+    }
+
+.chatbox-actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid var(--border-subtle);
+    background: #ffffff;
+}
+
+    .chatbox-actions input {
+        flex: 1;
+        border-radius: 999px;
+        border: 1px solid rgba(2,6,23,0.14);
+        padding: 8px 10px;
+        font-size: 12px;
+        outline: none;
+    }
+
+        .chatbox-actions input:focus {
+            border-color: rgba(0,170,255,0.6);
+            box-shadow: 0 0 0 3px rgba(0,170,255,0.18);
+        }
+
+    .chatbox-actions button {
+        border-radius: 999px;
+        border: none;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #04121d;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+/* ============ EXPLORE GRID ============ */
 .stream-grid {
     margin-top: 10px;
     display: grid;
@@ -583,26 +540,26 @@ body,
 .stream-card {
     border-radius: 14px;
     overflow: hidden;
-    background: radial-gradient(circle at top, #020b18, #020617 70%);
+    background: #ffffff;
     border: 1px solid var(--border-subtle);
     cursor: pointer;
-    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
 
     .stream-card:hover {
         transform: translateY(-3px);
-        border-color: var(--primary);
-        box-shadow: 0 14px 32px rgba(0, 170, 255, 0.35);
+        border-color: rgba(0,170,255,0.55);
+        box-shadow: 0 14px 32px rgba(0, 170, 255, 0.18);
     }
 
 .thumb-placeholder {
     height: 96px;
-    background: radial-gradient( circle at 10% 0%, rgba(0, 170, 255, 0.6), rgba(0, 170, 255, 0.06) 40%, #020617 100% );
+    background: radial-gradient(circle at 10% 0%, rgba(0,170,255,0.45), rgba(0,170,255,0.06) 45%, #ffffff 100%);
     display: flex;
     align-items: flex-end;
     padding: 8px 10px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 900;
 }
 
 .stream-card-body {
@@ -612,6 +569,7 @@ body,
 .stream-title {
     font-size: 13px;
     margin-bottom: 2px;
+    font-weight: 800;
 }
 
 .stream-meta {
@@ -621,12 +579,11 @@ body,
     justify-content: space-between;
 }
 
-/* ================== LOGIN PAGE ================== */
-
+/* ============ LOGIN PAGE (LIGHT) ============ */
 .login-shell {
     height: 100vh;
     display: flex;
-    background: radial-gradient( circle at top, #031727 0, #020617 45%, #00010a 100% );
+    background: radial-gradient(circle at top, #ffffff 0, #f1f5f9 55%, #eaf3ff 100%);
 }
 
 .login-left {
@@ -643,261 +600,43 @@ body,
     align-items: center;
     justify-content: center;
     padding: 24px 28px;
-    background: radial-gradient(circle at top, #020b18, #020617 60%);
+    background: rgba(255,255,255,0.85);
     border-left: 1px solid var(--border-subtle);
 }
 
-.login-left-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 26px;
-}
-
-.login-logo-text {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.login-logo-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
-    background: radial-gradient(circle at 30% 20%, #f9fafb, var(--primary));
-    box-shadow: 0 0 18px rgba(0, 170, 255, 0.9);
-}
-
-.login-badge {
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid rgba(148, 163, 184, 0.5);
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.login-hero-title {
-    margin: 10px 0 4px;
-    font-size: 26px;
-    font-weight: 700;
-}
-
-.login-hero-subtitle {
-    margin: 0 0 22px;
-    font-size: 13px;
-    max-width: 380px;
-    color: var(--text-muted);
-}
-
-.login-hero-card {
-    width: 100%;
-    max-width: 420px;
-    border-radius: 22px;
-    padding: 12px 14px 10px;
-    border: 1px solid rgba(0, 170, 255, 0.28);
-    background: radial-gradient( circle at top left, rgba(0, 170, 255, 0.32), rgba(0, 170, 255, 0.03) 40%, rgba(15, 23, 42, 0.98) );
-    box-shadow: 0 24px 80px rgba(0, 170, 255, 0.35);
-}
-
-.login-hero-screen {
-    border-radius: 18px;
-    background: radial-gradient(circle at 20% 0%, #1f2937, #020617);
-    padding: 12px;
-    position: relative;
-    overflow: hidden;
-}
-
-.login-hero-avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 26px;
-    background: radial-gradient(circle at 20% 0%, #0ea5e9, var(--primary));
-    box-shadow: 0 12px 40px rgba(0, 170, 255, 0.8);
-}
-
-.login-hero-icons {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-.login-hero-pill {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.95);
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-    .login-hero-pill .icon {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--primary);
-        box-shadow: 0 0 10px rgba(0, 170, 255, 0.9);
-    }
-
-    .login-hero-pill.top-left {
-        left: 16px;
-        top: 12px;
-    }
-
-    .login-hero-pill.bottom-right {
-        right: 12px;
-        bottom: 14px;
-    }
-
-    .login-hero-pill.bottom-left {
-        left: 22px;
-        bottom: 40px;
-    }
-
-.login-hero-controls {
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.login-hero-timeline {
-    flex: 1;
-    height: 4px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.9);
-    overflow: hidden;
-    margin-right: 8px;
-}
-
-    .login-hero-timeline span {
-        display: block;
-        width: 60%;
-        height: 100%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-    }
-
-.login-dot {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(0, 170, 255, 0.18);
-    box-shadow: 0 0 40px rgba(0, 170, 255, 0.45);
-}
-
-    .login-dot.small {
-        width: 14px;
-        height: 14px;
-    }
-
-    .login-dot.blue {
-        background: rgba(56, 189, 248, 0.35);
-    }
-
-    .login-dot.dot-1 {
-        width: 24px;
-        height: 24px;
-        left: 48%;
-        top: 14%;
-    }
-
-    .login-dot.dot-2 {
-        right: 16%;
-        top: 42%;
-    }
-
-    .login-dot.dot-3 {
-        left: 12%;
-        bottom: 18%;
-    }
-
-.login-left-footer {
-    margin-top: auto;
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-/* Card bên phải: login / register */
-
 .login-card {
-    width: 100%;
-    max-width: 380px;
-    border-radius: 20px;
-    padding: 20px 20px 18px;
-    background: radial-gradient( circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96) );
+    width: min(420px, 100%);
+    border-radius: 22px;
+    padding: 18px 18px 16px;
     border: 1px solid var(--border-subtle);
-    box-shadow: 0 18px 60px rgba(15, 23, 42, 0.9);
+    background: #ffffff;
+    box-shadow: 0 18px 60px rgba(2,6,23,0.08);
 }
 
 .login-brand {
-    display: flex;
-    gap: 3px;
-    font-weight: 800;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    font-size: 12px;
     color: var(--text-muted);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .login-heading {
-    margin: 0 0 4px;
-    font-size: 20px;
+    font-size: 18px;
+    font-weight: 900;
+    margin-bottom: 4px;
 }
 
 .login-subheading {
-    margin: 0 0 14px;
     font-size: 12px;
     color: var(--text-muted);
-}
-
-.login-google-btn {
-    width: 100%;
-    border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.6);
-    background: rgba(15, 23, 42, 0.98);
-    padding: 7px 10px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    color: var(--text-main);
-    margin-bottom: 10px;
-}
-
-    .login-google-btn:hover {
-        border-color: var(--primary);
-    }
-
-.login-google-icon {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    background: conic-gradient( from 180deg, #34a853, #4285f4, #fbbc05, #ea4335, #34a853 );
+    margin-bottom: 12px;
 }
 
 .login-divider {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-size: 11px;
     color: var(--text-muted);
     margin: 10px 0 12px;
@@ -906,7 +645,7 @@ body,
 .login-divider-line {
     flex: 1;
     height: 1px;
-    background: #1e293b;
+    background: var(--border-subtle);
 }
 
 .login-form-field {
@@ -922,40 +661,21 @@ body,
 .login-input {
     width: 100%;
     border-radius: 999px;
-    border: 1px solid rgba(30, 64, 175, 0.9);
-    background: rgba(15, 23, 42, 0.98);
-    padding: 7px 10px;
+    border: 1px solid rgba(2,6,23,0.14);
+    background: #ffffff;
+    padding: 8px 10px;
     font-size: 12px;
     color: var(--text-main);
     outline: none;
 }
 
     .login-input::placeholder {
-        color: #64748b;
+        color: #94a3b8;
     }
 
     .login-input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 1px rgba(0, 170, 255, 0.5);
-    }
-
-.login-row-inline {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-.login-link {
-    color: var(--primary);
-    cursor: pointer;
-    font-size: 11px;
-}
-
-    .login-link:hover {
-        text-decoration: underline;
+        border-color: rgba(0,170,255,0.6);
+        box-shadow: 0 0 0 3px rgba(0,170,255,0.18);
     }
 
 .login-submit-btn {
@@ -963,18 +683,13 @@ body,
     margin-top: 4px;
     border-radius: 999px;
     border: none;
-    padding: 8px 10px;
+    padding: 9px 10px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 900;
     cursor: pointer;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: #020617;
-    box-shadow: 0 18px 40px rgba(0, 170, 255, 0.7);
+    color: #04121d;
 }
-
-    .login-submit-btn:hover {
-        filter: brightness(1.05);
-    }
 
 .login-error {
     margin-top: 6px;
@@ -990,13 +705,18 @@ body,
     justify-content: space-between;
 }
 
-/* ================== RESPONSIVE ================== */
+.login-link {
+    color: var(--primary-dark);
+    cursor: pointer;
+    font-size: 11px;
+}
 
-@media (max-width: 960px) {
-    .login-shell {
-        flex-direction: column;
+    .login-link:hover {
+        text-decoration: underline;
     }
 
+/* ============ RESPONSIVE ============ */
+@media (max-width: 960px) {
     .login-left {
         display: none;
     }
@@ -1004,11 +724,6 @@ body,
     .login-right {
         flex: 1;
         border-left: none;
-        padding: 20px;
-    }
-
-    .main {
-        flex-direction: column;
     }
 
     .sidebar-left {
@@ -1018,4 +733,320 @@ body,
     .chat {
         display: none;
     }
+
+    .channel-panels {
+        grid-template-columns: 1fr;
+    }
+
+    .player-wrapper {
+        height: 320px;
+    }
 }
+
+/* ================== GUNDAM DECOR ================== */
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.mecha-emblem {
+    width: 22px;
+    height: 22px;
+    display: block;
+    filter: drop-shadow(0 8px 16px rgba(2,6,23,0.10));
+}
+
+/* áp dụng cho các nút chính của bạn */
+.pill-btn,
+.login-submit-btn,
+.app-logout,
+.reactionBar button {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate; /* để overlay đẹp */
+}
+
+    .pill-btn::after,
+    .login-submit-btn::after,
+    .app-logout::after,
+    .reactionBar button::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("./assets/mecha-stripes.svg");
+        background-size: 220px 220px;
+        opacity: 0.16;
+        pointer-events: none;
+        mix-blend-mode: multiply;
+    }
+
+    .pill-btn:hover::after,
+    .login-submit-btn:hover::after,
+    .app-logout:hover::after,
+    .reactionBar button:hover::after {
+        opacity: 0.26;
+    }
+
+/* đường viền “HUD” nhẹ */
+.panel,
+.stream-strip,
+.channel-info,
+.stream-card,
+.login-card {
+    position: relative;
+    box-shadow: 0 16px 50px rgba(2,6,23,0.08);
+}
+
+    .panel::before,
+    .stream-strip::before,
+    .channel-info::before,
+    .stream-card::before,
+    .login-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        border: 1px solid rgba(14,165,233,0.22);
+        box-shadow: inset 0 0 0 1px rgba(239,68,68,0.10), 0 0 0 2px rgba(255,255,255,0.45);
+    }
+/* ===== Palette overrides ===== */
+body {
+    background: var(--bg);
+    color: var(--text-main);
+}
+
+.topbar {
+    background: rgba(255,255,255,0.92);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.search-input {
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+}
+
+.sidebar {
+    background: rgba(255,255,255,0.85);
+    border-right: 1px solid var(--border-subtle);
+}
+
+.panel, .login-card, .stream-card, .chatbox {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+}
+
+.pill-btn {
+    background: rgba(255,255,255,0.92);
+    color: var(--primary);
+    border: 1px solid rgba(44,82,179,0.35);
+}
+
+    .pill-btn:hover {
+        box-shadow: 0 0 0 2px rgba(44,82,179,0.15);
+    }
+
+    .pill-btn.primary {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+
+.chatbox-actions input {
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+}
+
+.chatbox-actions button {
+    background: var(--primary);
+    color: #fff;
+    border: 1px solid rgba(44,82,179,0.35);
+}
+
+
+/* ===============================
+   GUNDAM PALETTE OVERRIDES (paste at END of App.css)
+   Palette:
+   #ffffff, #fff867, #fb2f38, #2c52b3, #5a5b6d
+================================= */
+
+:root {
+    --c-white: #ffffff;
+    --c-yellow: #fff867;
+    --c-red: #fb2f38;
+    --c-blue: #2c52b3;
+    --c-gray: #5a5b6d;
+    --g-topbar: linear-gradient(90deg, rgba(44,82,179,.95) 0%, rgba(90,91,109,.92) 100%);
+    --g-panel: linear-gradient(180deg, rgba(255,255,255,.88) 0%, rgba(255,255,255,.72) 100%);
+}
+
+/* ===== TOPBAR ===== */
+.topbar {
+    background: var(--g-topbar) !important;
+    border-bottom: 3px solid rgba(251,47,56,.55) !important; /* red accent */
+    color: var(--c-white) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+    /* overlay mecha-bg nhẹ trên topbar (nếu bạn có mecha-bg.svg) */
+    .topbar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("./assets/mecha-bg.svg");
+        background-size: cover;
+        background-position: center;
+        opacity: .10;
+        pointer-events: none;
+        filter: grayscale(1);
+    }
+
+.topbar-left {
+    position: relative;
+    z-index: 1;
+}
+
+.logo {
+    color: var(--c-yellow) !important;
+    font-weight: 900 !important;
+    letter-spacing: .10em !important;
+    text-shadow: 0 6px 18px rgba(2,6,23,.25);
+}
+
+.top-nav {
+    position: relative;
+    z-index: 1;
+    background: rgba(255,255,255,.14) !important;
+    border: 1px solid rgba(255,255,255,.25) !important;
+    backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    color: rgba(255,255,255,.88) !important;
+    border: 1px solid rgba(255,255,255,.18) !important;
+    background: transparent !important;
+}
+
+    .nav-item:hover {
+        background: rgba(255,255,255,.16) !important;
+        color: var(--c-white) !important;
+    }
+
+    .nav-item.active {
+        background: var(--c-yellow) !important;
+        color: #111827 !important;
+        border-color: rgba(255,248,103,.55) !important;
+        box-shadow: 0 10px 24px rgba(2,6,23,.18);
+    }
+
+.app-user-label {
+    position: relative;
+    z-index: 1;
+    color: rgba(255,255,255,.86) !important;
+}
+
+    .app-user-label b {
+        color: var(--c-yellow) !important;
+    }
+
+.app-logout {
+    position: relative;
+    z-index: 1;
+    background: rgba(251,47,56,.92) !important;
+    border: 1px solid rgba(251,47,56,.55) !important;
+    color: var(--c-white) !important;
+    box-shadow: 0 10px 24px rgba(2,6,23,.20);
+}
+
+    .app-logout:hover {
+        filter: brightness(1.05);
+    }
+
+/* ===== LEFT SIDEBAR ===== */
+.sidebar-left {
+    background: linear-gradient(180deg, rgba(44,82,179,.18) 0%, rgba(90,91,109,.10) 100%) !important;
+    border-right: 2px solid rgba(44,82,179,.28) !important;
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-title {
+    color: rgba(44,82,179,.95) !important;
+    letter-spacing: .22em;
+    font-weight: 800 !important;
+}
+
+.avatar-circle {
+    background: rgba(255,255,255,.78) !important;
+    border: 1px solid rgba(90,91,109,.25) !important;
+    box-shadow: 0 10px 26px rgba(2,6,23,.12);
+}
+
+    .avatar-circle.online {
+        outline: 3px solid rgba(251,47,56,.50) !important; /* ring đỏ */
+    }
+
+/* ===== RIGHT CHAT PANEL ===== */
+.chat {
+    background: rgba(255,255,255,.78) !important;
+    border-left: 2px solid rgba(44,82,179,.22) !important;
+    backdrop-filter: blur(10px);
+}
+
+.chat-header {
+    background: linear-gradient(90deg, rgba(44,82,179,.95), rgba(90,91,109,.92)) !important;
+    color: var(--c-white) !important;
+    border-bottom: 1px solid rgba(255,255,255,.18) !important;
+}
+
+.chat-title {
+    color: var(--c-white) !important;
+}
+
+.chat-username {
+    color: rgba(255,255,255,.86) !important;
+}
+
+.chatbox {
+    background: transparent !important;
+}
+
+.chatbox-item {
+    background: var(--g-panel) !important;
+    border: 1px solid rgba(44,82,179,.18) !important;
+}
+
+    .chatbox-item .meta b {
+        color: var(--c-blue) !important;
+    }
+
+.chatbox-actions {
+    background: rgba(255,255,255,.88) !important;
+    border-top: 1px solid rgba(44,82,179,.16) !important;
+}
+
+    .chatbox-actions input {
+        border: 1px solid rgba(44,82,179,.30) !important;
+    }
+
+        .chatbox-actions input:focus {
+            border-color: rgba(255,248,103,.95) !important;
+            box-shadow: 0 0 0 3px rgba(255,248,103,.35) !important;
+        }
+
+    .chatbox-actions button {
+        background: var(--c-blue) !important;
+        border: 1px solid rgba(44,82,179,.55) !important;
+        color: var(--c-white) !important;
+    }
+
+        .chatbox-actions button:hover {
+            background: var(--c-red) !important;
+            border-color: rgba(251,47,56,.65) !important;
+        }
