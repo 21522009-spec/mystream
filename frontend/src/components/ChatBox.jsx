@@ -8,12 +8,10 @@ export default function ChatBox({ roomCode, username, currentUser }) {
 
   const displayName = username || currentUser?.username || "guest";
 
-  // reset messages khi đổi phòng
   useEffect(() => {
     setMessages([]);
   }, [roomCode]);
 
-  // ✅ nhận chat theo roomCode (tránh dính phòng khi đổi)
   useEffect(() => {
     const onMsg = (m) => {
       if (!m) return;
@@ -63,9 +61,7 @@ export default function ChatBox({ roomCode, username, currentUser }) {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={
-            roomCode ? `Nhập nội dung... (Room ${roomCode})` : "Nhập nội dung..."
-          }
+          placeholder={roomCode ? `Nhập nội dung... (Room ${roomCode})` : "Nhập nội dung..."}
           onKeyDown={(e) => e.key === "Enter" && send("💬")}
         />
         <button onClick={() => send("💬")}>Gửi</button>

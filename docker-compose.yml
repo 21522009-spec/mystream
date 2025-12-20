@@ -19,14 +19,26 @@ services:
     container_name: mystream-srs
     restart: unless-stopped
     environment:
-      # Ép candidate về loopback để tránh DTLS_HANG khi chạy Docker (cùng máy)
       SRS_RTC_SERVER_CANDIDATE: "127.0.0.1"
     ports:
       - "1935:1935"
       - "1985:1985"
       - "8000:8000/udp"
+      - "8081:8080" 
     volumes:
       - ./srs/srs.conf:/usr/local/srs/conf/srs.conf:ro
+      - ./hls-live:/tmp/hls   # NEW: SRS ghi HLS live ra host
+
+  mystream-media:
+    image: nginx:alpine
+    container_name: mystream-media
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./hls-live:/usr/share/nginx/html/live:ro
+      - ./hls-vod:/usr/share/nginx/html/vod:ro
+      - ./nginx/media.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   mystream_pgdata:

@@ -19,7 +19,6 @@ export default function LivePlayer({ srsHost, streamKey }) {
 
   const schema = process.env.REACT_APP_SRS_SCHEMA || "http";
 
-  // Cho phép eip là "ip" hoặc "ip:port"
   const rtcEip = (process.env.REACT_APP_RTC_EIP || "").trim();
   const eipQuery = rtcEip ? `&eip=${encodeURIComponent(rtcEip)}` : "";
 
@@ -32,11 +31,8 @@ export default function LivePlayer({ srsHost, streamKey }) {
   const attach = async (stream) => {
     if (!videoRef.current || !stream) return;
     videoRef.current.srcObject = stream;
-
-    // Start muted để tránh autoplay bị chặn (đặc biệt tab ẩn danh)
     videoRef.current.muted = true;
     videoRef.current.playsInline = true;
-
     await videoRef.current.play();
   };
 
@@ -92,21 +88,49 @@ export default function LivePlayer({ srsHost, streamKey }) {
     const next = !isMuted;
     setIsMuted(next);
     videoRef.current.muted = next;
-
     try {
       await videoRef.current.play();
     } catch {}
   };
 
-  useEffect(() => {
+  useEffect: useEffect(() => {
     if (!streamKey) {
       stopPlay();
       return;
     }
-    // Auto-play (muted) khi vào phòng
     startPlay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streamKey, resolvedHost]);
+
+  // ===== Button styles (màu chữ rõ ràng) =====
+  const btnBase = {
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(2,6,23,0.14)",
+    background: "rgba(255,255,255,0.92)",
+    cursor: "pointer",
+    boxShadow: "0 8px 20px rgba(2,6,23,0.08)",
+    fontWeight: 800,
+    letterSpacing: "0.02em",
+  };
+
+  const btnWatch = {
+    ...btnBase,
+    color: "var(--mecha-blue, #0ea5e9)",
+    border: "1px solid rgba(14,165,233,0.45)",
+  };
+
+  const btnStop = {
+    ...btnBase,
+    color: "var(--mecha-red, #ef4444)",
+    border: "1px solid rgba(239,68,68,0.40)",
+  };
+
+  const btnAudio = {
+    ...btnBase,
+    color: "#92400e", // vàng đậm dễ đọc
+    border: "1px solid rgba(251,191,36,0.55)",
+  };
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
@@ -124,22 +148,28 @@ export default function LivePlayer({ srsHost, streamKey }) {
 
       <div
         style={{
-          position: "absolute",
-          top: 10,
-          left: 10,
-          display: "flex",
-          gap: 8,
-          zIndex: 5,
-        }}
+    position: "absolute",
+    left: "50%",
+    bottom: 14,
+    transform: "translateX(-50%)",
+    display: "flex",
+    gap: 10,
+    zIndex: 5,
+    padding: "10px 12px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.78)",
+    border: "1px solid rgba(2,6,23,0.10)",
+    boxShadow: "0 10px 30px rgba(2,6,23,0.18)",
+    backdropFilter: "blur(8px)",
+  }}
       >
         <button
           onClick={startPlay}
           disabled={isBusy || !streamKey}
           style={{
-            padding: "6px 12px",
-            borderRadius: 999,
-            border: "none",
+            ...btnWatch,
             cursor: isBusy ? "default" : "pointer",
+            opacity: isBusy || !streamKey ? 0.55 : 1,
           }}
         >
           {isBusy ? "Đang kết nối..." : "Xem"}
@@ -149,10 +179,8 @@ export default function LivePlayer({ srsHost, streamKey }) {
           onClick={stopPlay}
           disabled={isBusy}
           style={{
-            padding: "6px 12px",
-            borderRadius: 999,
-            border: "none",
-            cursor: isBusy ? "default" : "pointer",
+            ...btnStop,
+            opacity: isBusy ? 0.55 : 1,
           }}
         >
           Dừng
@@ -162,10 +190,9 @@ export default function LivePlayer({ srsHost, streamKey }) {
           onClick={toggleMute}
           disabled={status !== "playing"}
           style={{
-            padding: "6px 12px",
-            borderRadius: 999,
-            border: "none",
+            ...btnAudio,
             cursor: status !== "playing" ? "not-allowed" : "pointer",
+            opacity: status !== "playing" ? 0.55 : 1,
           }}
           title="Autoplay chạy muted; bấm để bật/tắt tiếng"
         >
@@ -182,15 +209,18 @@ export default function LivePlayer({ srsHost, streamKey }) {
             bottom: 10,
             padding: 10,
             borderRadius: 12,
-            background: "rgba(2,6,23,0.85)",
-            border: "1px solid rgba(251,146,60,0.5)",
-            color: "#fb923c",
+            background: "rgba(255,255,255,0.92)",
+            border: "1px solid rgba(239,68,68,0.35)",
+            color: "#991b1b",
             fontSize: 12,
             zIndex: 6,
+            boxShadow: "0 10px 30px rgba(2,6,23,0.12)",
           }}
         >
           Lỗi: {error}
-          <div style={{ opacity: 0.85, marginTop: 4 }}>WHEP: {whepUrl}</div>
+          <div style={{ opacity: 0.85, marginTop: 4, color: "#475569" }}>
+            WHEP: {whepUrl}
+          </div>
         </div>
       )}
     </div>
